@@ -9,7 +9,6 @@
   <version>1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <modules>
-    <module>FileSystemSDK</module>
     <module>NfsDriver</module>
     <module>InvokerSDK</module>
     <module>PermissionSystem</module>
@@ -18,6 +17,8 @@
     <module>UserLoginSystem/AuthenticationService</module>
     <module>UserLoginSystem/SessionService</module>
     <module>UserLoginSystem/UserLoginService</module>
+    <module>FileStorageService</module>
+    <module>FileStorageSDK</module>
   </modules>
 
   <properties>
