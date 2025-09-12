@@ -34,9 +34,10 @@ public class FileController {
 
     @PostMapping("/upload/chunked/{uploadId}/chunks/{chunkNumber}")
     public ResponseEntity<ChunkUploadResponse> getChunkUploadUrl(@PathVariable String uploadId, @PathVariable Integer chunkNumber) {
-        ChunkUploadRequest req = new ChunkUploadRequest();
-        req.setUploadId(uploadId);
-        req.setChunkNumber(chunkNumber);
+        ChunkUploadRequest req = ChunkUploadRequest.builder()
+            .uploadId(uploadId)
+            .chunkNumber(chunkNumber)
+            .build();
         return ResponseEntity.ok(fileStorageService.uploadChunk(req));
     }
 
@@ -63,15 +64,16 @@ public class FileController {
             @RequestParam(defaultValue = "20") Integer size,
             @RequestParam(defaultValue = "createdAt,desc") String sort) {
 
-        FileQueryRequest req = new FileQueryRequest();
-        req.setProjectId(projectId);
-        req.setMimeTypes(mimeTypes);
-        req.setCreatedBy(createdBy);
-        req.setCreatedAfter(createdAfter);
-        req.setCreatedBefore(createdBefore);
-        req.setPage(page);
-        req.setSize(size);
-        req.setSort(sort);
+        FileQueryRequest req = FileQueryRequest.builder()
+            .projectId(projectId)
+            .mimeTypes(mimeTypes)
+            .createdBy(createdBy)
+            .createdAfter(createdAfter)
+            .createdBefore(createdBefore)
+            .page(page)
+            .size(size)
+            .sort(sort)
+            .build();
         return ResponseEntity.ok(fileStorageService.queryFiles(req));
     }
 

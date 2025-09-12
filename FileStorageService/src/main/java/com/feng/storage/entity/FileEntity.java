@@ -1,0 +1,81 @@
+package com.feng.storage.entity;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import javax.persistence.*;
+import java.time.Instant;
+import java.util.Map;
+import java.util.UUID;
+
+@Entity
+@Table(name = "files")
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class FileEntity {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private UUID id;
+    
+    @Column(name = "filename", nullable = false, length = 255)
+    private String filename;
+    
+    @Column(name = "original_filename", nullable = false, length = 255)
+    private String originalFilename;
+    
+    @Column(name = "file_size", nullable = false)
+    private Long fileSize;
+    
+    @Column(name = "mime_type", nullable = false, length = 100)
+    private String mimeType;
+    
+    @Column(name = "file_hash", nullable = false, length = 64)
+    private String fileHash;
+    
+    @Column(name = "gcs_bucket", nullable = false, length = 100)
+    private String gcsBucket;
+    
+    @Column(name = "gcs_object_key", nullable = false, length = 500)
+    private String gcsObjectKey;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "upload_status", nullable = false, length = 20)
+    private UploadStatus uploadStatus;
+    
+    @Column(name = "created_by", nullable = false)
+    private UUID createdBy;
+    
+    @Column(name = "project_id")
+    private UUID projectId;
+    
+    @ElementCollection
+    @CollectionTable(name = "file_tags", joinColumns = @JoinColumn(name = "file_id"))
+    @MapKeyColumn(name = "tag_key")
+    @Column(name = "tag_value")
+    private Map<String, String> tags;
+    
+    @Column(name = "metadata", columnDefinition = "jsonb")
+    private String metadata; // JSON string for extensible metadata
+    
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt;
+    
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
+    
+    @Column(name = "expires_at")
+    private Instant expiresAt;
+    
+    public enum UploadStatus {
+        PENDING, UPLOADING, COMPLETED, FAILED, EXPIRED
+    }
+}

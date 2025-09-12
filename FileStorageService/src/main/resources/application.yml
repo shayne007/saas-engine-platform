@@ -1,18 +1,103 @@
 server:
   port: 8080
+  servlet:
+    context-path: /api/v1
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,metrics,prometheus
   endpoint:
     health:
       probes:
         enabled: true
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
 
 spring:
+  application:
+    name: file-storage-service
+  
+  # Database configuration
+  datasource:
+    url: jdbc:postgresql://localhost:5432/file_storage
+    username: ${DB_USERNAME:file_storage_user}
+    password: ${DB_PASSWORD:file_storage_password}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  
+  # JPA configuration
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+    open-in-view: false
+  
+  # Redis configuration
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
+    timeout: 2000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+        max-wait: -1ms
+  
+  # Jackson configuration
   jackson:
     serialization:
       WRITE_DATES_AS_TIMESTAMPS: false
+    time-zone: UTC
+
+# GCS configuration
+gcs:
+  project:
+    id: ${GCS_PROJECT_ID:}
+  bucket:
+    name: ${GCS_BUCKET_NAME:file-storage-bucket}
+  credentials:
+    path: ${GCS_CREDENTIALS_PATH:}
+
+# File storage configuration
+file-storage:
+  max-file-size: 104857600 # 100MB
+  chunk-size: 5242880 # 5MB
+  upload-timeout: 3600 # 1 hour
+  download-timeout: 300 # 5 minutes
+  cleanup:
+    enabled: true
+    interval: 3600000 # 1 hour
+    failed-upload-retention-days: 7
+    access-log-retention-days: 90
+
+# Logging configuration
+logging:
+  level:
+    com.feng.storage: INFO
+    org.springframework.web: INFO
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 

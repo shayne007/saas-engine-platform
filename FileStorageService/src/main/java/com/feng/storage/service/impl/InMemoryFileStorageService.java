@@ -20,28 +20,30 @@ public class InMemoryFileStorageService implements FileStorageService {
     @Override
     public FileUploadResponse uploadFile(FileUploadRequest request) {
         String id = UUID.randomUUID().toString();
-        FileMetadata meta = new FileMetadata();
-        meta.setId(id);
-        meta.setFilename(request.getOriginalFilename());
-        meta.setOriginalFilename(request.getOriginalFilename());
-        meta.setFileSize(request.getFileSize());
-        meta.setMimeType(request.getMimeType());
-        meta.setFileHash(request.getFileHash());
-        meta.setGcsBucket("in-memory");
-        meta.setGcsObjectKey("mem://" + id);
-        meta.setUploadStatus("COMPLETED");
-        meta.setCreatedBy(request.getUserId());
-        meta.setProjectId(request.getProjectId());
-        meta.setTags(request.getTags());
-        meta.setMetadata(request.getMetadata());
-        meta.setCreatedAt(Instant.now());
-        meta.setUpdatedAt(Instant.now());
+        FileMetadata meta = FileMetadata.builder()
+            .id(id)
+            .filename(request.getOriginalFilename())
+            .originalFilename(request.getOriginalFilename())
+            .fileSize(request.getFileSize())
+            .mimeType(request.getMimeType())
+            .fileHash(request.getFileHash())
+            .gcsBucket("in-memory")
+            .gcsObjectKey("mem://" + id)
+            .uploadStatus("COMPLETED")
+            .createdBy(request.getUserId())
+            .projectId(request.getProjectId())
+            .tags(request.getTags())
+            .metadata(request.getMetadata())
+            .createdAt(Instant.now())
+            .updatedAt(Instant.now())
+            .build();
         files.put(id, meta);
-        FileUploadResponse resp = new FileUploadResponse();
-        resp.setFileId(id);
-        resp.setUploadUrl(null);
-        resp.setExpiresAt(Instant.now().plus(Duration.ofMinutes(10)));
-        resp.setIsDuplicate(Boolean.FALSE);
+        FileUploadResponse resp = FileUploadResponse.builder()
+            .fileId(id)
+            .uploadUrl(null)
+            .expiresAt(Instant.now().plus(Duration.ofMinutes(10)))
+            .isDuplicate(Boolean.FALSE)
+            .build();
         return resp;
     }
 
@@ -49,29 +51,31 @@ public class InMemoryFileStorageService implements FileStorageService {
     public ChunkedUploadResponse initiateChunkedUpload(ChunkedUploadRequest request) {
         String fileId = UUID.randomUUID().toString();
         String uploadId = UUID.randomUUID().toString();
-        FileMetadata meta = new FileMetadata();
-        meta.setId(fileId);
-        meta.setFilename(request.getOriginalFilename());
-        meta.setOriginalFilename(request.getOriginalFilename());
-        meta.setFileSize(request.getFileSize());
-        meta.setMimeType(request.getMimeType());
-        meta.setFileHash(request.getFileHash());
-        meta.setGcsBucket("in-memory");
-        meta.setGcsObjectKey("mem://" + fileId);
-        meta.setUploadStatus("UPLOADING");
-        meta.setCreatedBy(request.getUserId());
-        meta.setProjectId(request.getProjectId());
-        meta.setTags(request.getTags());
-        meta.setMetadata(request.getMetadata());
-        meta.setCreatedAt(Instant.now());
-        meta.setUpdatedAt(Instant.now());
+        FileMetadata meta = FileMetadata.builder()
+            .id(fileId)
+            .filename(request.getOriginalFilename())
+            .originalFilename(request.getOriginalFilename())
+            .fileSize(request.getFileSize())
+            .mimeType(request.getMimeType())
+            .fileHash(request.getFileHash())
+            .gcsBucket("in-memory")
+            .gcsObjectKey("mem://" + fileId)
+            .uploadStatus("UPLOADING")
+            .createdBy(request.getUserId())
+            .projectId(request.getProjectId())
+            .tags(request.getTags())
+            .metadata(request.getMetadata())
+            .createdAt(Instant.now())
+            .updatedAt(Instant.now())
+            .build();
         files.put(fileId, meta);
         uploadIdToFileId.put(uploadId, fileId);
         uploadChunks.put(uploadId, new ConcurrentHashMap<>());
-        ChunkedUploadResponse r = new ChunkedUploadResponse();
-        r.setFileId(fileId);
-        r.setUploadId(uploadId);
-        r.setExpiresAt(Instant.now().plus(Duration.ofHours(1)));
+        ChunkedUploadResponse r = ChunkedUploadResponse.builder()
+            .fileId(fileId)
+            .uploadId(uploadId)
+            .expiresAt(Instant.now().plus(Duration.ofHours(1)))
+            .build();
         return r;
     }
 
@@ -79,7 +83,7 @@ public class InMemoryFileStorageService implements FileStorageService {
     public ChunkUploadResponse uploadChunk(ChunkUploadRequest request) {
         uploadChunks.computeIfAbsent(request.getUploadId(), k -> new ConcurrentHashMap<>())
                 .put(request.getChunkNumber(), "etag-" + request.getChunkNumber());
-        ChunkUploadResponse r = new ChunkUploadResponse();
+        ChunkUploadResponse r = ChunkUploadResponse.builder().build();
         r.setChunkUploadUrl("mem://upload/" + request.getUploadId() + "/" + request.getChunkNumber());
         r.setExpiresAt(Instant.now().plus(Duration.ofMinutes(10)));
         return r;
@@ -93,11 +97,12 @@ public class InMemoryFileStorageService implements FileStorageService {
         if (meta == null) throw new IllegalStateException("File not found");
         meta.setUploadStatus("COMPLETED");
         meta.setUpdatedAt(Instant.now());
-        FileUploadResponse r = new FileUploadResponse();
-        r.setFileId(fileId);
-        r.setUploadUrl(null);
-        r.setExpiresAt(Instant.now().plus(Duration.ofMinutes(10)));
-        r.setIsDuplicate(Boolean.FALSE);
+        FileUploadResponse r = FileUploadResponse.builder()
+            .fileId(fileId)
+            .uploadUrl(null)
+            .expiresAt(Instant.now().plus(Duration.ofMinutes(10)))
+            .isDuplicate(Boolean.FALSE)
+            .build();
         return r;
     }
 
@@ -105,12 +110,13 @@ public class InMemoryFileStorageService implements FileStorageService {
     public FileDownloadResponse getDownloadUrl(String fileId, Duration expiration) {
         FileMetadata meta = files.get(fileId);
         if (meta == null) throw new IllegalArgumentException("File not found");
-        FileDownloadResponse r = new FileDownloadResponse();
-        r.setDownloadUrl("mem://download/" + fileId);
-        r.setFilename(meta.getOriginalFilename());
-        r.setFileSize(meta.getFileSize());
-        r.setMimeType(meta.getMimeType());
-        r.setExpiresAt(Instant.now().plus(expiration));
+        FileDownloadResponse r = FileDownloadResponse.builder()
+            .downloadUrl("mem://download/" + fileId)
+            .filename(meta.getOriginalFilename())
+            .fileSize(meta.getFileSize())
+            .mimeType(meta.getMimeType())
+            .expiresAt(Instant.now().plus(expiration))
+            .build();
         return r;
     }
 
@@ -126,7 +132,7 @@ public class InMemoryFileStorageService implements FileStorageService {
         int size = Optional.ofNullable(request.getSize()).orElse(20);
         int from = Math.min(page * size, filtered.size());
         int to = Math.min(from + size, filtered.size());
-        FileQueryResponse r = new FileQueryResponse();
+        FileQueryResponse r = FileQueryResponse.builder().build();
         r.setFiles(filtered.subList(from, to));
         r.setTotal((long) filtered.size());
         return r;
