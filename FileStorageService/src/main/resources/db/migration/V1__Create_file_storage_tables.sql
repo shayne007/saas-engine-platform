@@ -56,7 +56,7 @@ CREATE TABLE file_access_logs (
     file_id UUID REFERENCES files(id) ON DELETE SET NULL,
     access_type VARCHAR(20) NOT NULL, -- UPLOAD, DOWNLOAD, DELETE, VIEW
     user_id UUID NOT NULL,
-    ip_address INET,
+    ip_address BYTEA,
     user_agent TEXT,
     accessed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

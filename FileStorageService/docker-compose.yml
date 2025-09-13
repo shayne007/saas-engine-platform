@@ -13,7 +13,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./src/main/resources/db/migration:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U file_storage_user -d file_storage"]
+      test: [ "CMD-SHELL", "pg_isready -U file_storage_user -d file_storage" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -25,41 +25,10 @@ services:
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
-
-  file-storage-service:
-    build: .
-    ports:
-      - "8080:8080"
-    environment:
-      SPRING_PROFILES_ACTIVE: production
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_NAME: file_storage
-      DB_USERNAME: file_storage_user
-      DB_PASSWORD: file_storage_password
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      GCS_PROJECT_ID: ${GCS_PROJECT_ID}
-      GCS_BUCKET_NAME: ${GCS_BUCKET_NAME}
-      GCS_CREDENTIALS_PATH: ${GCS_CREDENTIALS_PATH}
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    volumes:
-      - ./logs:/var/log/file-storage-service
-      - ${GCS_CREDENTIALS_PATH}:/etc/gcp/service-account.json:ro
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
 
 volumes:
   postgres_data:

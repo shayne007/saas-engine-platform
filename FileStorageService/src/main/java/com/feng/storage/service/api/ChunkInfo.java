@@ -6,8 +6,10 @@ import lombok.Data;
 @Data
 @Builder
 public class ChunkInfo {
-    private Integer chunkNumber;
-    private String etag;
+
+	private Integer chunkNumber;
+
+	private String etag;
 }
 
 

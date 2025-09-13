@@ -2,25 +2,33 @@ package com.feng.storage.service.api;
 
 import java.time.Duration;
 
+import org.springframework.web.multipart.MultipartFile;
+
 /**
  * Minimal service interface based on the design document.
  */
 public interface FileStorageService {
 
-    FileUploadResponse uploadFile(FileUploadRequest request);
+	FileUploadResponse uploadFile(FileUploadRequest request);
 
-    ChunkedUploadResponse initiateChunkedUpload(ChunkedUploadRequest request);
+	FileUploadResponse uploadFile(MultipartFile file, FileUploadRequest request);
+	
+	long getMaxSingleUploadSize();
+	
+	int getDefaultChunkSize();
 
-    ChunkUploadResponse uploadChunk(ChunkUploadRequest request);
+	ChunkedUploadResponse initiateChunkedUpload(ChunkedUploadRequest request);
 
-    FileUploadResponse completeChunkedUpload(CompleteChunkedUploadRequest request);
+	ChunkUploadResponse uploadChunk(ChunkUploadRequest request);
 
-    FileDownloadResponse getDownloadUrl(String fileId, Duration expiration);
+	FileUploadResponse completeChunkedUpload(CompleteChunkedUploadRequest request);
 
-    FileQueryResponse queryFiles(FileQueryRequest request);
+	FileDownloadResponse getDownloadUrl(String fileId, Duration expiration);
 
-    void deleteFile(String fileId, String userId);
+	FileQueryResponse queryFiles(FileQueryRequest request);
 
-    FileMetadata getFileMetadata(String fileId);
+	void deleteFile(String fileId, String userId);
+
+	FileMetadata getFileMetadata(String fileId);
 }
 

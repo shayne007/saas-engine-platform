@@ -6,8 +6,10 @@ import lombok.Data;
 @Data
 @Builder
 public class ChunkUploadRequest {
-    private String uploadId;
-    private Integer chunkNumber;
+
+	private String uploadId;
+
+	private Integer chunkNumber;
 }
 
 

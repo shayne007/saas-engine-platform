@@ -1,10 +1,14 @@
 # File Storage Service
 
-A production-ready file storage service built with Spring Boot, PostgreSQL, and Google Cloud Storage (GCS). This service provides secure file upload, download, and management capabilities with support for chunked uploads for large files.
+A production-ready file storage service built with Spring Boot, PostgreSQL, and Google
+Cloud Storage (GCS). This service
+provides secure file upload, download, and management capabilities with support for
+chunked uploads for large files.
 
 ## Features
 
-- **File Upload & Download**: Support for single file uploads and chunked uploads for large files
+- **File Upload & Download**: Support for single file uploads and chunked uploads for
+  large files
 - **Google Cloud Storage Integration**: Secure file storage using GCS with signed URLs
 - **PostgreSQL Database**: Metadata storage with full ACID compliance
 - **File Deduplication**: SHA-256 based deduplication to save storage space
@@ -83,6 +87,7 @@ mvn spring-boot:run -Dspring-boot.run.profiles=default
 ### File Upload
 
 **Single File Upload**
+
 ```bash
 POST /api/v1/files/upload
 Content-Type: application/json
@@ -99,6 +104,7 @@ Content-Type: application/json
 ```
 
 **Chunked Upload (Large Files)**
+
 ```bash
 # 1. Initiate chunked upload
 POST /api/v1/files/upload/chunked
@@ -148,18 +154,18 @@ DELETE /api/v1/files/{fileId}
 
 ### Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `DB_HOST` | PostgreSQL host | `localhost` |
-| `DB_PORT` | PostgreSQL port | `5432` |
-| `DB_NAME` | Database name | `file_storage` |
-| `DB_USERNAME` | Database username | `file_storage_user` |
-| `DB_PASSWORD` | Database password | `file_storage_password` |
-| `REDIS_HOST` | Redis host | `localhost` |
-| `REDIS_PORT` | Redis port | `6379` |
-| `GCS_PROJECT_ID` | GCP Project ID | Required |
-| `GCS_BUCKET_NAME` | GCS Bucket name | Required |
-| `GCS_CREDENTIALS_PATH` | Service account JSON path | Required |
+| Variable               | Description               | Default                 |
+|------------------------|---------------------------|-------------------------|
+| `DB_HOST`              | PostgreSQL host           | `localhost`             |
+| `DB_PORT`              | PostgreSQL port           | `5432`                  |
+| `DB_NAME`              | Database name             | `file_storage`          |
+| `DB_USERNAME`          | Database username         | `file_storage_user`     |
+| `DB_PASSWORD`          | Database password         | `file_storage_password` |
+| `REDIS_HOST`           | Redis host                | `localhost`             |
+| `REDIS_PORT`           | Redis port                | `6379`                  |
+| `GCS_PROJECT_ID`       | GCP Project ID            | Required                |
+| `GCS_BUCKET_NAME`      | GCS Bucket name           | Required                |
+| `GCS_CREDENTIALS_PATH` | Service account JSON path | Required                |
 
 ### Application Properties
 
@@ -218,6 +224,7 @@ GET /api/v1/actuator/prometheus
 ```
 
 Key metrics:
+
 - `file_uploads_total`: Total file uploads
 - `file_downloads_total`: Total file downloads
 - `file_upload_duration`: Upload duration histogram

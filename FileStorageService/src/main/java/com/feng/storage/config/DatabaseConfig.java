@@ -10,6 +10,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EntityScan(basePackages = "com.feng.storage.entity")
 @EnableTransactionManagement
 public class DatabaseConfig {
-    // Configuration is handled by Spring Boot auto-configuration
-    // Additional custom configuration can be added here if needed
+	// Configuration is handled by Spring Boot auto-configuration
+	// Additional custom configuration can be added here if needed
 }
