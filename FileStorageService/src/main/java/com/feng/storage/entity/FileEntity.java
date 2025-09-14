@@ -17,15 +17,19 @@ import javax.persistence.JoinColumn;
 import javax.persistence.MapKeyColumn;
 import javax.persistence.Table;
 
+import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Table(name = "files")
+@TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
 @Data
 @Builder
 @NoArgsConstructor
@@ -73,6 +77,7 @@ public class FileEntity {
 	@Column(name = "tag_value")
 	private Map<String, String> tags;
 
+	@Type(type = "jsonb")
 	@Column(name = "metadata", columnDefinition = "jsonb")
 	private String metadata; // JSON string for extensible metadata
 

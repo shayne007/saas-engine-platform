@@ -65,17 +65,21 @@ public class GcsStorageClient {
 	/**
 	 * Upload file directly to GCS
 	 */
-	public void uploadFile(String bucket, String objectName, InputStream content, String contentType) throws IOException {
+	public void uploadFile(String bucket, String objectName, InputStream content,
+			String contentType) throws IOException {
 		try {
 			BlobId blobId = BlobId.of(bucket, objectName);
 			BlobInfo blobInfo = BlobInfo.newBuilder(blobId)
-				.setContentType(contentType)
-				.build();
-			
+					.setContentType(contentType)
+					.build();
+
 			// Upload the file to GCS
-			storage.createFrom(blobInfo, content);
-			log.info("Successfully uploaded file to {}/{}", bucket, objectName);
-		} catch (StorageException e) {
+			Blob blob = storage.createFrom(blobInfo, content);
+			log.info("Successfully uploaded file to {}/{}, getMediaLink: {}", bucket,
+					objectName,
+					blob.getMediaLink());
+		}
+		catch (StorageException e) {
 			log.error("Failed to upload file to {}/{}", bucket, objectName, e);
 			throw new IOException("Failed to upload file to GCS", e);
 		}
