@@ -9,7 +9,7 @@
     <version>1.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>FileSystemSDK</artifactId>
+  <artifactId>FileStorageSDK</artifactId>
   <name>FileStorageSDK</name>
   <description>Client SDK for File Storage Service</description>
 

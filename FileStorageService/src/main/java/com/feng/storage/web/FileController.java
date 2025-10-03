@@ -32,6 +32,7 @@ import com.feng.storage.service.api.FileUploadRequest;
 import com.feng.storage.service.api.FileUploadResponse;
 import com.feng.storage.service.validation.FileValidationService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -50,8 +51,6 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import lombok.extern.slf4j.Slf4j;
-
 @RestController
 @RequestMapping("/api/v1/files")
 @Validated
@@ -60,53 +59,94 @@ import lombok.extern.slf4j.Slf4j;
 public class FileController {
 
 	private final FileStorageService fileStorageService;
+
 	private final FileValidationService fileValidationService;
+
 	private final ChunkManagerService chunkManagerService;
-
-
 
 	@PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<FileUploadResponse> uploadFile(
 			@Valid @RequestPart("file") MultipartFile file,
 			@RequestParam(value = "projectId", required = false) String projectId,
 			@RequestParam(value = "metadata", required = false) String metadata) {
-		
+
 		try {
 			// Validate the file
 			fileValidationService.validateFile(file);
-			
+
 			// Determine upload strategy based on file size
 			if (file.getSize() > fileStorageService.getMaxSingleUploadSize()) {
 				return initiateChunkedUploadFromFile(file, projectId, metadata);
-			} else {
+			}
+			else {
 				return uploadDirectly(file, projectId, metadata);
 			}
-		} catch (FileValidationException e) {
+		}
+		catch (FileValidationException e) {
 			log.error("File validation failed: {}", e.getMessage());
 			return ResponseEntity.badRequest().body(
-				FileUploadResponse.builder()
-					.error(e.getMessage())
-					.build()
+					FileUploadResponse.builder()
+							.error(e.getMessage())
+							.build()
 			);
 		}
 	}
-	
-	private ResponseEntity<FileUploadResponse> uploadDirectly(MultipartFile file, String projectId, String metadata) {
+
+	private ResponseEntity<FileUploadResponse> uploadDirectly(MultipartFile file,
+			String projectId, String metadata) {
 		try {
 			// Create FileUploadRequest from MultipartFile
-			FileUploadRequest request = buildFileUploadRequest(file, projectId, metadata);
-			
+			FileUploadRequest request = buildFileUploadRequest(file, projectId,
+					metadata);
+
 			// Process the upload
 			return ResponseEntity.ok(fileStorageService.uploadFile(file, request));
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			throw new RuntimeException("Failed to process file upload", e);
 		}
 	}
-	
-	private ResponseEntity<FileUploadResponse> initiateChunkedUploadFromFile(MultipartFile file, String projectId, String metadata) {
+
+	private ResponseEntity<FileUploadResponse> initiateChunkedUploadFromFile(
+			MultipartFile file, String projectId, String metadata) {
 		try {
 			// Create chunked upload request from file
 			ChunkedUploadRequest request = ChunkedUploadRequest.builder()
+					.originalFilename(file.getOriginalFilename())
+					.fileSize(file.getSize())
+					.mimeType(file.getContentType())
+					.fileHash(calculateFileHash(file))
+					.userId(getCurrentUserId())
+					.projectId(projectId)
+					.metadata(parseMetadata(metadata))
+					.totalChunks(calculateTotalChunks(file.getSize()))
+					.chunkSize(fileStorageService.getDefaultChunkSize())
+					.build();
+
+			// Initiate chunked upload through the ChunkManagerService
+			ChunkedUploadResponse response =
+					fileStorageService.initiateChunkedUpload(request);
+
+			// Return response with chunk upload details
+			return ResponseEntity.status(HttpStatus.CREATED)
+					.body(FileUploadResponse.builder()
+							.fileId(response.getFileId())
+							.uploadId(response.getUploadId())
+							.expiresAt(response.getExpiresAt())
+							.chunkedUpload(true)
+							.totalChunks(response.getTotalChunks())
+							.chunkSize(response.getChunkSize())
+							.build());
+		}
+		catch (IOException e) {
+			throw new RuntimeException("Failed to initiate chunked upload", e);
+		}
+	}
+
+	private FileUploadRequest buildFileUploadRequest(MultipartFile file,
+			String projectId,
+			String metadata) throws IOException {
+		return FileUploadRequest.builder()
 				.originalFilename(file.getOriginalFilename())
 				.fileSize(file.getSize())
 				.mimeType(file.getContentType())
@@ -114,78 +154,56 @@ public class FileController {
 				.userId(getCurrentUserId())
 				.projectId(projectId)
 				.metadata(parseMetadata(metadata))
-				.totalChunks(calculateTotalChunks(file.getSize()))
-				.chunkSize(fileStorageService.getDefaultChunkSize())
 				.build();
-			
-			// Initiate chunked upload through the ChunkManagerService
-			ChunkedUploadResponse response =
-					fileStorageService.initiateChunkedUpload(request);
-			
-			// Return response with chunk upload details
-			return ResponseEntity.status(HttpStatus.CREATED).body(FileUploadResponse.builder()
-				.fileId(response.getFileId())
-				.uploadId(response.getUploadId())
-				.expiresAt(response.getExpiresAt())
-				.chunkedUpload(true)
-				.totalChunks(response.getTotalChunks())
-				.chunkSize(response.getChunkSize())
-				.build());
-		} catch (IOException e) {
-			throw new RuntimeException("Failed to initiate chunked upload", e);
-		}
 	}
-	
-	private FileUploadRequest buildFileUploadRequest(MultipartFile file, String projectId, String metadata) throws IOException {
-		return FileUploadRequest.builder()
-			.originalFilename(file.getOriginalFilename())
-			.fileSize(file.getSize())
-			.mimeType(file.getContentType())
-			.fileHash(calculateFileHash(file))
-			.userId(getCurrentUserId())
-			.projectId(projectId)
-			.metadata(parseMetadata(metadata))
-			.build();
-	}
-	
+
 	private String calculateFileHash(MultipartFile file) throws IOException {
 		try {
 			MessageDigest digest = MessageDigest.getInstance("SHA-256");
 			byte[] hash = digest.digest(file.getBytes());
 			return bytesToHex(hash);
-		} catch (NoSuchAlgorithmException e) {
+		}
+		catch (NoSuchAlgorithmException e) {
 			throw new RuntimeException("Failed to calculate file hash", e);
 		}
 	}
-	
+
 	private String bytesToHex(byte[] bytes) {
 		StringBuilder hexString = new StringBuilder();
 		for (byte b : bytes) {
 			String hex = Integer.toHexString(0xff & b);
-			if (hex.length() == 1) hexString.append('0');
+			if (hex.length() == 1) {
+				hexString.append('0');
+			}
 			hexString.append(hex);
 		}
 		return hexString.toString();
 	}
-	
+
 	private int calculateTotalChunks(long fileSize) {
-		return (int) Math.ceil((double) fileSize / fileStorageService.getDefaultChunkSize());
+		return (int) Math.ceil(
+				(double) fileSize / fileStorageService.getDefaultChunkSize());
 	}
-	
+
 	private String getCurrentUserId() {
 		// In a real implementation, this would get the user ID from the security context
 		return "2bf25b60-1b62-4230-85f2-a7c9d10d938b"; // Placeholder
 	}
-	
+
 	private Map<String, Object> parseMetadata(String metadata) {
 		if (metadata == null || metadata.isEmpty()) {
 			return new HashMap<>();
 		}
 		try {
 			// Parse JSON metadata string to Map
-			return new ObjectMapper().readValue(metadata, new TypeReference<Map<String, Object>>() {});
-		} catch (Exception e) {
-			throw new IllegalArgumentException("Invalid metadata format. Expected JSON", e);
+			return new ObjectMapper().readValue(metadata,
+					new TypeReference<Map<String, Object>>() {
+
+					});
+		}
+		catch (Exception e) {
+			throw new IllegalArgumentException("Invalid metadata format. Expected JSON",
+					e);
 		}
 	}
 
@@ -195,31 +213,34 @@ public class FileController {
 		return ResponseEntity.status(HttpStatus.CREATED)
 				.body(fileStorageService.initiateChunkedUpload(request));
 	}
-	
+
 	@PostMapping("/upload/chunked/initiate")
 	public ResponseEntity<ChunkedUploadResponse> initiateChunkedUploadDirect(
 			@RequestParam("fileName") String fileName,
 			@RequestParam("totalSize") long totalSize,
 			@RequestParam(value = "chunkSize", required = false) Integer chunkSize,
 			@RequestParam(value = "projectId", required = false) String projectId) {
-		
+
 		// Generate a unique upload ID
 		String uploadId = UUID.randomUUID().toString();
-		
+
 		// Use default chunk size if not provided
-		int actualChunkSize = chunkSize != null ? chunkSize : chunkManagerService.getDefaultChunkSize();
-		
+		int actualChunkSize =
+				chunkSize != null ? chunkSize :
+						chunkManagerService.getDefaultChunkSize();
+
 		// Create upload session
 		ChunkedUploadSession session = chunkManagerService.createUploadSession(
-			uploadId, fileName, totalSize, actualChunkSize, projectId);
-		
-		return ResponseEntity.status(HttpStatus.CREATED).body(ChunkedUploadResponse.builder()
-			.fileId(session.getFileId())
-			.uploadId(uploadId)
-			.totalChunks(session.getTotalChunks())
-			.chunkSize(session.getChunkSize())
-			.expiresAt(session.getExpiresAt())
-			.build());
+				uploadId, fileName, totalSize, actualChunkSize, projectId);
+
+		return ResponseEntity.status(HttpStatus.CREATED)
+				.body(ChunkedUploadResponse.builder()
+						.fileId(session.getFileId())
+						.uploadId(uploadId)
+						.totalChunks(session.getTotalChunks())
+						.chunkSize(session.getChunkSize())
+						.expiresAt(session.getExpiresAt())
+						.build());
 	}
 
 	@PostMapping("/upload/chunked/{uploadId}/chunks/{chunkNumber}")
@@ -227,18 +248,20 @@ public class FileController {
 			@PathVariable String uploadId, @PathVariable Integer chunkNumber) {
 		// Get the upload session
 		ChunkedUploadSession session = chunkManagerService.getUploadSession(uploadId);
-		
+
 		// Generate signed URL for chunk upload
-		String uploadUrl = chunkManagerService.generateChunkUploadUrl(uploadId, chunkNumber);
-		
+		String uploadUrl =
+				chunkManagerService.generateChunkUploadUrl(uploadId, chunkNumber);
+
 		return ResponseEntity.ok(ChunkUploadResponse.builder()
 				.chunkUploadUrl(uploadUrl)
 				.expiresAt(session.getExpiresAt())
 				.build());
 	}
-	
+
 	// This method is removed as it's a duplicate of the one below
-	// The second implementation at line @PutMapping("/upload/chunked/{uploadId}/chunks/{chunkNumber}") is kept
+	// The second implementation at line @PutMapping
+	// ("/upload/chunked/{uploadId}/chunks/{chunkNumber}") is kept
 
 	@PostMapping("/upload/chunked/{uploadId}/complete")
 	public ResponseEntity<FileUploadResponse> completeChunkedUpload(
@@ -247,34 +270,36 @@ public class FileController {
 		request.setUploadId(uploadId);
 		return ResponseEntity.ok(fileStorageService.completeChunkedUpload(request));
 	}
-	
+
 	@PutMapping("/upload/chunked/{uploadId}/chunks/{chunkNumber}")
 	public ResponseEntity<ChunkUploadResponse> uploadChunk(
 			@PathVariable String uploadId,
 			@PathVariable Integer chunkNumber,
 			@RequestParam("chunk") MultipartFile chunk) {
-		
+
 		try {
 			// Upload the chunk
-			ChunkUploadResult result = chunkManagerService.uploadChunk(uploadId, chunkNumber, chunk);
-			
+			ChunkUploadResult result =
+					chunkManagerService.uploadChunk(uploadId, chunkNumber, chunk);
+
 			// Check if all chunks are uploaded
 			if (result.isComplete()) {
 				// Finalize the upload
 				FileEntity fileEntity = chunkManagerService.finalizeUpload(uploadId);
-				
+
 				// Return response with completed flag and fileId
 				return ResponseEntity.ok(ChunkUploadResponse.builder()
 						.completed(true)
 						.fileId(fileEntity.getId().toString())
 						.build());
 			}
-			
+
 			// Return response with completed flag set to false
 			return ResponseEntity.ok(ChunkUploadResponse.builder()
 					.completed(false)
 					.build());
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			log.error("Error uploading chunk: {}", e.getMessage(), e);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 					.body(ChunkUploadResponse.builder().build());

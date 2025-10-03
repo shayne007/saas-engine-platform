@@ -19,6 +19,7 @@
     <module>UserLoginSystem/UserLoginService</module>
     <module>FileStorageService</module>
     <module>FileStorageSDK</module>
+      <module>CalendarService</module>
   </modules>
 
   <properties>

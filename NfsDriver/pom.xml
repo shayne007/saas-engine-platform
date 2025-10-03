@@ -19,7 +19,7 @@
   <dependencies>
     <dependency>
       <groupId>com.feng</groupId>
-      <artifactId>FileSystemSDK</artifactId>
+      <artifactId>FileStorageSDK</artifactId>
       <version>1.0-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
