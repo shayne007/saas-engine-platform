@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -34,9 +36,13 @@ public class HolidayResolver {
         String cacheKey = String.format(HOLIDAY_CACHE_KEY, countryCode, date.toString());
         
         // Try L1 cache (Redis) first
-        Holiday cachedHoliday = (Holiday) redisTemplate.opsForValue().get(cacheKey);
-        if (cachedHoliday != null) {
-            return cachedHoliday.isNoHoliday() ? Optional.empty() : Optional.of(cachedHoliday);
+        Object cachedObject = getCachedObject(cacheKey);
+        if (cachedObject != null) {
+            // Handle both Holiday objects and LinkedHashMap (for backward compatibility)
+            Holiday cachedHoliday = convertToHoliday(cachedObject);
+            if (cachedHoliday != null) {
+                return cachedHoliday.isNoHoliday() ? Optional.empty() : Optional.of(cachedHoliday);
+            }
         }
         
         // Check database
@@ -93,5 +99,64 @@ public class HolidayResolver {
     public void clearHolidayCacheForCountry(String countryCode) {
         String pattern = String.format(HOLIDAY_CACHE_KEY.replace(":%s", ""), countryCode) + ":*";
         redisTemplate.delete(redisTemplate.keys(pattern));
+    }
+    
+    /**
+     * Clear all holiday cache (useful for fixing serialization issues)
+     */
+    public void clearAllHolidayCache() {
+        String pattern = "holiday:*";
+        redisTemplate.delete(redisTemplate.keys(pattern));
+        log.info("Cleared all holiday cache");
+    }
+    
+    /**
+     * Convert cached object to Holiday, handling both Holiday objects and LinkedHashMap
+     */
+    private Holiday convertToHoliday(Object cachedObject) {
+        if (cachedObject instanceof Holiday) {
+            return (Holiday) cachedObject;
+        }
+        
+        if (cachedObject instanceof LinkedHashMap) {
+            try {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> map = (Map<String, Object>) cachedObject;
+                
+                // Check if this is a "no holiday" marker
+                Object id = map.get("id");
+                if (id != null && id.equals(-1L)) {
+                    return Holiday.noHoliday();
+                }
+                
+                // For regular holidays, we need to reconstruct from the map
+                // This is a fallback for existing cached data
+                log.warn("Found LinkedHashMap in cache, this indicates serialization issue. " +
+                        "Consider clearing cache or updating serialization configuration.");
+                
+                // Return null to force database lookup
+                return null;
+            } catch (Exception e) {
+                log.warn("Failed to convert LinkedHashMap to Holiday", e);
+                return null;
+            }
+        }
+        
+        log.warn("Unexpected cached object type: {}", cachedObject.getClass());
+        return null;
+    }
+    
+    /**
+     * Safely get object from Redis cache with error handling
+     */
+    private Object getCachedObject(String cacheKey) {
+        try {
+            return redisTemplate.opsForValue().get(cacheKey);
+        } catch (Exception e) {
+            log.warn("Failed to retrieve cached object for key: {}", cacheKey, e);
+            // Clear the problematic cache entry
+            redisTemplate.delete(cacheKey);
+            return null;
+        }
     }
 }

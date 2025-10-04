@@ -27,7 +27,7 @@ public class BusinessCalendarService {
     /**
      * Get custom rule for a specific date and business calendar
      */
-    @Cacheable(value = "business-calendar-rules", key = "#businessCalendarId + '_' + #date.toString()")
+    @Cacheable(value = "business-calendar-rules", key = "#p1 + '_' + #p0.toString()")
     public Optional<BusinessCalendarRule> getCustomRule(LocalDate date, String businessCalendarId) {
         try {
             Long calendarId = Long.parseLong(businessCalendarId);

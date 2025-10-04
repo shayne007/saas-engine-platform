@@ -1,6 +1,8 @@
 package com.feng.calendar.model.entity;
 
 import jakarta.persistence.*;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -37,11 +39,14 @@ public class Country {
     private LocalDateTime createdAt;
     
     @OneToMany(mappedBy = "country", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Holiday> holidays;
+	@JsonIgnore
+	private List<Holiday> holidays;
     
     @OneToMany(mappedBy = "country", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@JsonIgnore
     private List<WeekendDefinition> weekendDefinitions;
     
     @OneToMany(mappedBy = "country", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@JsonIgnore
     private List<BusinessCalendar> businessCalendars;
 }

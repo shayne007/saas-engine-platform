@@ -30,7 +30,7 @@ public class WeekendChecker {
     /**
      * Check if a date is a weekend for a given country
      */
-    @Cacheable(value = "weekend-checks", key = "#date.toString() + '_' + #countryCode")
+    @Cacheable(value = "weekend-checks", key = "#p0.toString() + '_' + #p1")
     public boolean isWeekend(LocalDate date, String countryCode) {
         try {
             List<WeekendDefinition> weekendDefinitions = getWeekendDefinitions(countryCode);

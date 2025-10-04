@@ -53,12 +53,20 @@ public class Holiday {
     private LocalDateTime createdAt;
     
     /**
+     * Transient field to support serialization/deserialization
+     * Not persisted to database
+     */
+    @Transient
+    private Boolean noHoliday;
+    
+    /**
      * Static method to create a "no holiday" marker for caching
      */
     public static Holiday noHoliday() {
         Holiday holiday = new Holiday();
         holiday.setId(-1L);
         holiday.setName("NO_HOLIDAY");
+        holiday.setNoHoliday(true);
         return holiday;
     }
     

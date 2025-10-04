@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:15
+    image: postgres:13
     container_name: calendar-postgres
     environment:
       POSTGRES_DB: calendar_service
@@ -19,7 +19,7 @@ services:
       retries: 5
 
   redis:
-    image: redis:7
+    image: redis:7-alpine
     container_name: calendar-redis
     ports:
       - "6379:6379"
@@ -31,26 +31,26 @@ services:
       timeout: 5s
       retries: 5
 
-  calendar-service:
-    build: .
-    container_name: calendar-service
-    environment:
-      SPRING_PROFILES_ACTIVE: prod
-      DB_PASSWORD: password
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-    ports:
-      - "8080:8080"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/calendar-service/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+#  calendar-service:
+#    build: .
+#    container_name: calendar-service
+#    environment:
+#      SPRING_PROFILES_ACTIVE: prod
+#      DB_PASSWORD: password
+#      REDIS_HOST: redis
+#      REDIS_PORT: 6379
+#    ports:
+#      - "8080:8080"
+#    depends_on:
+#      postgres:
+#        condition: service_healthy
+#      redis:
+#        condition: service_healthy
+#    healthcheck:
+#      test: ["CMD", "curl", "-f", "http://localhost:8080/calendar-service/actuator/health"]
+#      interval: 30s
+#      timeout: 10s
+#      retries: 3
 
 volumes:
   postgres_data:

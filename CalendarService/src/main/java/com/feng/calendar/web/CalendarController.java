@@ -31,10 +31,10 @@ public class CalendarController {
      */
     @GetMapping("/date-type")
     public ResponseEntity<DateTypeResponse> getDateType(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-            @RequestParam(defaultValue = "US") String country,
-            @RequestParam(required = false) String timezone,
-            @RequestParam(required = false) String businessCalendar) {
+            @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(name = "country", defaultValue = "US") String country,
+            @RequestParam(name = "timezone", required = false) String timezone,
+            @RequestParam(name = "businessCalendar", required = false) String businessCalendar) {
         
         log.info("Checking date type for date: {}, country: {}, businessCalendar: {}", 
                 date, country, businessCalendar);
@@ -49,10 +49,10 @@ public class CalendarController {
      */
     @GetMapping("/next-work-date")
     public ResponseEntity<WorkDateResponse> getNextWorkDate(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
-            @RequestParam(defaultValue = "US") String country,
-            @RequestParam(required = false) String businessCalendar,
-            @RequestParam(defaultValue = "true") boolean skipWeekends) {
+            @RequestParam("fromDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam(name = "country", defaultValue = "US") String country,
+            @RequestParam(name = "businessCalendar", required = false) String businessCalendar,
+            @RequestParam(name = "skipWeekends", defaultValue = "true") boolean skipWeekends) {
         
         log.info("Finding next work date from: {}, country: {}, businessCalendar: {}, skipWeekends: {}", 
                 fromDate, country, businessCalendar, skipWeekends);
@@ -67,9 +67,9 @@ public class CalendarController {
      */
     @GetMapping("/previous-work-date")
     public ResponseEntity<WorkDateResponse> getPreviousWorkDate(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
-            @RequestParam(defaultValue = "US") String country,
-            @RequestParam(required = false) String businessCalendar) {
+            @RequestParam("fromDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam(name = "country", defaultValue = "US") String country,
+            @RequestParam(name = "businessCalendar", required = false) String businessCalendar) {
         
         log.info("Finding previous work date from: {}, country: {}, businessCalendar: {}", 
                 fromDate, country, businessCalendar);
@@ -108,7 +108,7 @@ public class CalendarController {
      * Check if a country is supported
      */
     @GetMapping("/countries/{countryCode}/supported")
-    public ResponseEntity<Boolean> isCountrySupported(@PathVariable String countryCode) {
+    public ResponseEntity<Boolean> isCountrySupported(@PathVariable("countryCode") String countryCode) {
         log.info("Checking if country is supported: {}", countryCode);
         
         boolean supported = calendarService.isCountrySupported(countryCode);
