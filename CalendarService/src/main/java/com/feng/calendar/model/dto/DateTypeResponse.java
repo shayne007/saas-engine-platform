@@ -32,6 +32,5 @@ public class DateTypeResponse {
         private String dayOfWeek;
         private Integer weekNumber;
         private Boolean isWeekend;
-        private String timezone;
     }
 }

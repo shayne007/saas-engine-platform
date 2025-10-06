@@ -32,7 +32,7 @@ public class CalendarService {
      * Check the type of a date
      */
     @Transactional(readOnly = true)
-    public DateTypeResponse checkDateType(LocalDate date, String country, String timezone, String businessCalendar) {
+    public DateTypeResponse checkDateType(LocalDate date, String country, String businessCalendar) {
         validateCountry(country);
         
         return dateTypeChecker.checkDateType(date, country, businessCalendar);

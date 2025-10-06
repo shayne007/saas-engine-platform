@@ -158,7 +158,7 @@ GET /api/v1/calendar/date-type
 **Parameters:**
 - `date` (required): Date in ISO-8601 format (YYYY-MM-DD)
 - `country` (optional): Country code (ISO 3166-1 alpha-2), default: US
-- `timezone` (optional): Timezone identifier, default: UTC
+~~- `timezone` (optional): Timezone identifier, default: UTC~~
 - `businessCalendar` (optional): Custom business calendar ID
 
 **Response:**
