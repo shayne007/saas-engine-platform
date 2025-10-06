@@ -47,14 +47,15 @@ GET /api/v1/calendar/date-type?date=2024-07-04&country=US
 
 ### 2. Get Next Work Date
 ```http
-GET /api/v1/calendar/next-work-date?fromDate=2024-07-04&country=US
+GET /api/v1/calendar/next-work-date?fromDate=2024-07-03&country=US
 ```
 
 **Response:**
 ```json
 {
-  "fromDate": "2024-07-04",
+  "fromDate": "2024-07-03",
   "nextWorkDate": "2024-07-05",
+  "previousWorkDate": null,
   "daysSkipped": 1,
   "skippedDates": [
     {
@@ -68,7 +69,28 @@ GET /api/v1/calendar/next-work-date?fromDate=2024-07-04&country=US
 
 ### 3. Get Previous Work Date
 ```http
-GET /api/v1/calendar/previous-work-date?fromDate=2024-07-04&country=US
+GET /api/v1/calendar/previous-work-date?fromDate=2024-07-08&country=US
+```
+**Response:**
+```json
+{
+	"fromDate": "2024-07-08",
+	"nextWorkDate": null,
+	"previousWorkDate": "2024-07-05",
+	"daysSkipped": 2,
+	"skippedDates": [
+		{
+			"date": "2024-07-07",
+			"reason": "Weekend",
+			"dateType": "WEEKEND"
+		},
+		{
+			"date": "2024-07-06",
+			"reason": "Weekend",
+			"dateType": "WEEKEND"
+		}
+	]
+}
 ```
 
 ### 4. Bulk Date Processing
@@ -82,7 +104,88 @@ Content-Type: application/json
   "operations": ["DATE_TYPE", "NEXT_WORK_DATE"]
 }
 ```
-
+**Response:**
+```json
+{
+	"dateTypeResults": [
+		{
+			"date": "2024-07-04",
+			"dateType": "HOLIDAY",
+			"isWorkDay": false,
+			"holidayName": "Independence Day",
+			"country": "US",
+			"metadata": {
+				"dayOfWeek": "Thursday",
+				"weekNumber": 27,
+				"isWeekend": false,
+				"timezone": null
+			}
+		},
+		{
+			"date": "2024-07-05",
+			"dateType": "WORK_DAY",
+			"isWorkDay": true,
+			"holidayName": null,
+			"country": "US",
+			"metadata": {
+				"dayOfWeek": "Friday",
+				"weekNumber": 27,
+				"isWeekend": false,
+				"timezone": null
+			}
+		},
+		{
+			"date": "2024-12-25",
+			"dateType": "HOLIDAY",
+			"isWorkDay": false,
+			"holidayName": "Christmas Day",
+			"country": "US",
+			"metadata": {
+				"dayOfWeek": "Wednesday",
+				"weekNumber": 52,
+				"isWeekend": false,
+				"timezone": null
+			}
+		}
+	],
+	"workDateResults": [
+		{
+			"fromDate": "2024-07-04",
+			"nextWorkDate": "2024-07-05",
+			"previousWorkDate": null,
+			"daysSkipped": 0,
+			"skippedDates": []
+		},
+		{
+			"fromDate": "2024-07-05",
+			"nextWorkDate": "2024-07-08",
+			"previousWorkDate": null,
+			"daysSkipped": 2,
+			"skippedDates": [
+				{
+					"date": "2024-07-06",
+					"reason": "Weekend",
+					"dateType": "WEEKEND"
+				},
+				{
+					"date": "2024-07-07",
+					"reason": "Weekend",
+					"dateType": "WEEKEND"
+				}
+			]
+		},
+		{
+			"fromDate": "2024-12-25",
+			"nextWorkDate": "2024-12-26",
+			"previousWorkDate": null,
+			"daysSkipped": 0,
+			"skippedDates": []
+		}
+	],
+	"totalProcessed": 3,
+	"processingTimeMs": 1208
+}
+```
 ### 5. Get Available Countries
 ```http
 GET /api/v1/calendar/countries
