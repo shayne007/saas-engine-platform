@@ -68,7 +68,7 @@ public class DateTypeChecker {
 				.dateType(DateType.WORK_DAY)
 				.isWorkDay(true)
 				.country(countryCode)
-				.metadata(createMetadata(date))
+				.metadata(createMetadata(date, countryCode))
 				.build();
 	}
 
@@ -81,7 +81,7 @@ public class DateTypeChecker {
 				.dateType(DateType.WEEKEND)
 				.isWorkDay(false)
 				.country(countryCode)
-				.metadata(createMetadata(date))
+				.metadata(createMetadata(date, countryCode))
 				.build();
 	}
 
@@ -96,7 +96,7 @@ public class DateTypeChecker {
 				.isWorkDay(false)
 				.holidayName(holiday.getName())
 				.country(countryCode)
-				.metadata(createMetadata(date))
+				.metadata(createMetadata(date, countryCode))
 				.build();
 	}
 
@@ -111,20 +111,22 @@ public class DateTypeChecker {
 				.isWorkDay(false)
 				.holidayName(rule.getDescription())
 				.country(countryCode)
-				.metadata(createMetadata(date))
+				.metadata(createMetadata(date, countryCode))
 				.build();
 	}
 
 	/**
 	 * Create metadata for a date
 	 */
-	private DateTypeResponse.DateMetadata createMetadata(LocalDate date) {
+	private DateTypeResponse.DateMetadata createMetadata(LocalDate date,
+			String countryCode) {
+		String dayOfWeek =
+				date.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.ENGLISH);
 		return DateTypeResponse.DateMetadata.builder()
-				.dayOfWeek(date.getDayOfWeek()
-						.getDisplayName(TextStyle.FULL, Locale.ENGLISH))
+				.dayOfWeek(dayOfWeek)
 				.weekNumber(date.getDayOfYear() / 7 + 1)
 				.isWeekend(weekendChecker.isWeekend(date,
-						"US")) // Default to US weekend check for metadata
+						countryCode)) // Default to US weekend check for metadata
 				.build();
 	}
 }
