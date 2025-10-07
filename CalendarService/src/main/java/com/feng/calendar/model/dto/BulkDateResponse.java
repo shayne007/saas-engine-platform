@@ -1,11 +1,11 @@
 package com.feng.calendar.model.dto;
 
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
 
 /**
  * Response DTO for bulk date processing
@@ -15,9 +15,12 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BulkDateResponse {
-    
-    private List<DateTypeResponse> dateTypeResults;
-    private List<WorkDateResponse> workDateResults;
-    private Integer totalProcessed;
-    private Long processingTimeMs;
+
+	private List<DateTypeResponse> dateTypeResults;
+
+	private List<WorkDateResponse> workDateResults;
+
+	private Integer totalProcessed;
+
+	private Long processingTimeMs;
 }

@@ -11,7 +11,7 @@ spring:
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
-      
+
   # Production Redis Configuration
   data:
     redis:
@@ -26,7 +26,7 @@ spring:
           max-idle: 10
           min-idle: 5
           max-wait: 5000ms
-          
+
   # Production JPA Configuration
   jpa:
     show-sql: false

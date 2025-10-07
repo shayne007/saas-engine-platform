@@ -14,7 +14,7 @@ spring:
     username: calendar_user
     password: ${DB_PASSWORD:password}
     driver-class-name: org.postgresql.Driver
-    
+
   # JPA Configuration
   jpa:
     hibernate:
@@ -27,7 +27,7 @@ spring:
         order_inserts: true
         order_updates: true
     open-in-view: false
-    
+
   # Redis Configuration
   data:
     redis:
@@ -41,14 +41,14 @@ spring:
           max-idle: 8
           min-idle: 0
           max-wait: -1ms
-          
+
   # Jackson Configuration
   jackson:
     serialization:
       write-dates-as-timestamps: false
     deserialization:
       fail-on-unknown-properties: false
-      
+
   # Flyway Configuration
   flyway:
     enabled: true
@@ -73,12 +73,12 @@ calendar-service:
       sources:
         - country: "US"
           url: "https://api.usa.gov/holidays"
-        - country: "GB" 
+        - country: "GB"
           url: "https://api.gov.uk/bank-holidays"
   
   database:
     holiday-cache-refresh-interval: PT6H
-    
+
   performance:
     bulk-request-limit: 1000
     max-search-days: 30

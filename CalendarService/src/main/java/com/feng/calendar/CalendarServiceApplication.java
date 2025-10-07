@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
  * Main application class for Calendar Service
- * 
+ *
  * This service provides APIs to determine date types (work day, holiday, weekend)
  * and find next/previous work dates with support for multiple countries and
  * custom business calendars.
@@ -21,7 +21,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableTransactionManagement
 public class CalendarServiceApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(CalendarServiceApplication.class, args);
-    }
+	public static void main(String[] args) {
+		SpringApplication.run(CalendarServiceApplication.class, args);
+	}
 }

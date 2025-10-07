@@ -1,6 +1,9 @@
 # Calendar Service
 
-A robust, scalable Spring Boot service designed to determine whether a given date is a holiday, work date, or weekend. It provides APIs to check date types and find the next/previous work dates, supporting multiple countries, time zones, and custom business calendars.
+A robust, scalable Spring Boot service designed to determine whether a given date is a
+holiday, work date, or weekend. It provides APIs to check date types and find the
+next/previous work dates, supporting multiple countries, time zones, and custom business
+calendars.
 
 ## Features
 
@@ -25,11 +28,13 @@ A robust, scalable Spring Boot service designed to determine whether a given dat
 ## API Endpoints
 
 ### 1. Check Date Type
+
 ```http
 GET /api/v1/calendar/date-type?date=2024-07-04&country=US
 ```
 
 **Response:**
+
 ```json
 {
   "date": "2024-07-04",
@@ -46,11 +51,13 @@ GET /api/v1/calendar/date-type?date=2024-07-04&country=US
 ```
 
 ### 2. Get Next Work Date
+
 ```http
 GET /api/v1/calendar/next-work-date?fromDate=2024-07-03&country=US
 ```
 
 **Response:**
+
 ```json
 {
   "fromDate": "2024-07-03",
@@ -68,32 +75,36 @@ GET /api/v1/calendar/next-work-date?fromDate=2024-07-03&country=US
 ```
 
 ### 3. Get Previous Work Date
+
 ```http
 GET /api/v1/calendar/previous-work-date?fromDate=2024-07-08&country=US
 ```
+
 **Response:**
+
 ```json
 {
-	"fromDate": "2024-07-08",
-	"nextWorkDate": null,
-	"previousWorkDate": "2024-07-05",
-	"daysSkipped": 2,
-	"skippedDates": [
-		{
-			"date": "2024-07-07",
-			"reason": "Weekend",
-			"dateType": "WEEKEND"
-		},
-		{
-			"date": "2024-07-06",
-			"reason": "Weekend",
-			"dateType": "WEEKEND"
-		}
-	]
+  "fromDate": "2024-07-08",
+  "nextWorkDate": null,
+  "previousWorkDate": "2024-07-05",
+  "daysSkipped": 2,
+  "skippedDates": [
+    {
+      "date": "2024-07-07",
+      "reason": "Weekend",
+      "dateType": "WEEKEND"
+    },
+    {
+      "date": "2024-07-06",
+      "reason": "Weekend",
+      "dateType": "WEEKEND"
+    }
+  ]
 }
 ```
 
 ### 4. Bulk Date Processing
+
 ```http
 POST /api/v1/calendar/bulk-check
 Content-Type: application/json
@@ -104,94 +115,99 @@ Content-Type: application/json
   "operations": ["DATE_TYPE", "NEXT_WORK_DATE"]
 }
 ```
+
 **Response:**
+
 ```json
 {
-	"dateTypeResults": [
-		{
-			"date": "2024-07-04",
-			"dateType": "HOLIDAY",
-			"isWorkDay": false,
-			"holidayName": "Independence Day",
-			"country": "US",
-			"metadata": {
-				"dayOfWeek": "Thursday",
-				"weekNumber": 27,
-				"isWeekend": false,
-				"timezone": null
-			}
-		},
-		{
-			"date": "2024-07-05",
-			"dateType": "WORK_DAY",
-			"isWorkDay": true,
-			"holidayName": null,
-			"country": "US",
-			"metadata": {
-				"dayOfWeek": "Friday",
-				"weekNumber": 27,
-				"isWeekend": false,
-				"timezone": null
-			}
-		},
-		{
-			"date": "2024-12-25",
-			"dateType": "HOLIDAY",
-			"isWorkDay": false,
-			"holidayName": "Christmas Day",
-			"country": "US",
-			"metadata": {
-				"dayOfWeek": "Wednesday",
-				"weekNumber": 52,
-				"isWeekend": false,
-				"timezone": null
-			}
-		}
-	],
-	"workDateResults": [
-		{
-			"fromDate": "2024-07-04",
-			"nextWorkDate": "2024-07-05",
-			"previousWorkDate": null,
-			"daysSkipped": 0,
-			"skippedDates": []
-		},
-		{
-			"fromDate": "2024-07-05",
-			"nextWorkDate": "2024-07-08",
-			"previousWorkDate": null,
-			"daysSkipped": 2,
-			"skippedDates": [
-				{
-					"date": "2024-07-06",
-					"reason": "Weekend",
-					"dateType": "WEEKEND"
-				},
-				{
-					"date": "2024-07-07",
-					"reason": "Weekend",
-					"dateType": "WEEKEND"
-				}
-			]
-		},
-		{
-			"fromDate": "2024-12-25",
-			"nextWorkDate": "2024-12-26",
-			"previousWorkDate": null,
-			"daysSkipped": 0,
-			"skippedDates": []
-		}
-	],
-	"totalProcessed": 3,
-	"processingTimeMs": 1208
+  "dateTypeResults": [
+    {
+      "date": "2024-07-04",
+      "dateType": "HOLIDAY",
+      "isWorkDay": false,
+      "holidayName": "Independence Day",
+      "country": "US",
+      "metadata": {
+        "dayOfWeek": "Thursday",
+        "weekNumber": 27,
+        "isWeekend": false,
+        "timezone": null
+      }
+    },
+    {
+      "date": "2024-07-05",
+      "dateType": "WORK_DAY",
+      "isWorkDay": true,
+      "holidayName": null,
+      "country": "US",
+      "metadata": {
+        "dayOfWeek": "Friday",
+        "weekNumber": 27,
+        "isWeekend": false,
+        "timezone": null
+      }
+    },
+    {
+      "date": "2024-12-25",
+      "dateType": "HOLIDAY",
+      "isWorkDay": false,
+      "holidayName": "Christmas Day",
+      "country": "US",
+      "metadata": {
+        "dayOfWeek": "Wednesday",
+        "weekNumber": 52,
+        "isWeekend": false,
+        "timezone": null
+      }
+    }
+  ],
+  "workDateResults": [
+    {
+      "fromDate": "2024-07-04",
+      "nextWorkDate": "2024-07-05",
+      "previousWorkDate": null,
+      "daysSkipped": 0,
+      "skippedDates": []
+    },
+    {
+      "fromDate": "2024-07-05",
+      "nextWorkDate": "2024-07-08",
+      "previousWorkDate": null,
+      "daysSkipped": 2,
+      "skippedDates": [
+        {
+          "date": "2024-07-06",
+          "reason": "Weekend",
+          "dateType": "WEEKEND"
+        },
+        {
+          "date": "2024-07-07",
+          "reason": "Weekend",
+          "dateType": "WEEKEND"
+        }
+      ]
+    },
+    {
+      "fromDate": "2024-12-25",
+      "nextWorkDate": "2024-12-26",
+      "previousWorkDate": null,
+      "daysSkipped": 0,
+      "skippedDates": []
+    }
+  ],
+  "totalProcessed": 3,
+  "processingTimeMs": 1208
 }
 ```
+
 ### 5. Get Available Countries
+
 ```http
 GET /api/v1/calendar/countries
 ```
 
 ### 6. Check Country Support
+
 ```http
 GET /api/v1/calendar/countries/US/supported
 ```
@@ -217,13 +233,13 @@ calendar-service:
   cache:
     ttl: PT24H
     max-entries: 100000
-  
+
   external-apis:
     holiday-api:
       url: "https://api.holidayapi.com"
       timeout: 5s
       retry-attempts: 3
-    
+
   performance:
     bulk-request-limit: 1000
     max-search-days: 30
@@ -283,11 +299,13 @@ calendar-service:
 ## Testing
 
 ### Unit Tests
+
 ```bash
 mvn test
 ```
 
 ### Integration Tests
+
 ```bash
 mvn verify
 ```
