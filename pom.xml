@@ -20,6 +20,8 @@
     <module>FileStorageService</module>
     <module>FileStorageSDK</module>
       <module>CalendarService</module>
+      <module>ObservabilitySystem</module>
+      <module>FileStorageSystem</module>
   </modules>
 
   <properties>
