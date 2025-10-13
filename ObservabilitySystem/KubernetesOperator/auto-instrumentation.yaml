@@ -1,0 +1,211 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: opentelemetry-operator-system
+
+---
+# OpenTelemetry Operator for Auto-Instrumentation
+apiVersion: opentelemetry.io/v1alpha1
+kind: Instrumentation
+metadata:
+  name: default-instrumentation
+  namespace: default
+spec:
+  exporter:
+    endpoint: http://otel-collector.observability:4317
+  
+  propagators:
+    - tracecontext
+    - baggage
+    - b3
+  
+  sampler:
+    type: parentbased_traceidratio
+    argument: "0.25"  # Sample 25% of traces
+  
+  python:
+    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-python:latest
+    env:
+      - name: OTEL_EXPORTER_OTLP_ENDPOINT
+        value: http://otel-collector.observability:4317
+      - name: OTEL_METRICS_EXPORTER
+        value: otlp
+      - name: OTEL_LOGS_EXPORTER
+        value: otlp
+  
+  java:
+    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-java:latest
+    env:
+      - name: OTEL_EXPORTER_OTLP_ENDPOINT
+        value: http://otel-collector.observability:4317
+  
+  nodejs:
+    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-nodejs:latest
+    env:
+      - name: OTEL_EXPORTER_OTLP_ENDPOINT
+        value: http://otel-collector.observability:4317
+  
+  go:
+    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-go:latest
+    env:
+      - name: OTEL_EXPORTER_OTLP_ENDPOINT
+        value: http://otel-collector.observability:4317
+
+---
+# Example application deployment with auto-instrumentation
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: data-collector-service
+  namespace: default
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: data-collector-service
+  template:
+    metadata:
+      labels:
+        app: data-collector-service
+      annotations:
+        # Enable auto-instrumentation
+        instrumentation.opentelemetry.io/inject-java: "true"
+    spec:
+      containers:
+      - name: data-collector-service
+        image: gcr.io/your-project/data-collector-service:latest
+        ports:
+          - containerPort: 8081
+        env:
+          - name: OTEL_SERVICE_NAME
+            value: "data-collector-service"
+          - name: OTEL_RESOURCE_ATTRIBUTES
+            value: "deployment.environment=production,service.version=1.0.0"
+          - name: OTEL_EXPORTER_OTLP_ENDPOINT
+            value: "http://otel-collector.observability:4317"
+        resources:
+          requests:
+            memory: 256Mi
+            cpu: 200m
+          limits:
+            memory: 512Mi
+            cpu: 500m
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: data-collector-service
+  namespace: default
+spec:
+  selector:
+    app: data-collector-service
+  ports:
+    - port: 8081
+      targetPort: 8081
+
+---
+# Example Python application with auto-instrumentation
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: page-view-tracker
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: page-view-tracker
+  template:
+    metadata:
+      labels:
+        app: page-view-tracker
+      annotations:
+        # Enable auto-instrumentation
+        instrumentation.opentelemetry.io/inject-python: "true"
+    spec:
+      containers:
+      - name: page-view-tracker
+        image: gcr.io/your-project/page-view-tracker:latest
+        ports:
+          - containerPort: 8082
+        env:
+          - name: OTEL_SERVICE_NAME
+            value: "page-view-tracker"
+          - name: OTEL_RESOURCE_ATTRIBUTES
+            value: "deployment.environment=production,service.version=1.0.0"
+          - name: OTEL_EXPORTER_OTLP_ENDPOINT
+            value: "http://otel-collector.observability:4317"
+        resources:
+          requests:
+            memory: 128Mi
+            cpu: 100m
+          limits:
+            memory: 256Mi
+            cpu: 300m
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: page-view-tracker
+  namespace: default
+spec:
+  selector:
+    app: page-view-tracker
+  ports:
+    - port: 8082
+      targetPort: 8082
+
+---
+# Example API monitor with auto-instrumentation
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-monitor
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: api-monitor
+  template:
+    metadata:
+      labels:
+        app: api-monitor
+      annotations:
+        # Enable auto-instrumentation
+        instrumentation.opentelemetry.io/inject-python: "true"
+    spec:
+      containers:
+      - name: api-monitor
+        image: gcr.io/your-project/api-monitor:latest
+        ports:
+          - containerPort: 8083
+        env:
+          - name: OTEL_SERVICE_NAME
+            value: "api-monitor"
+          - name: OTEL_RESOURCE_ATTRIBUTES
+            value: "deployment.environment=production,service.version=1.0.0"
+          - name: OTEL_EXPORTER_OTLP_ENDPOINT
+            value: "http://otel-collector.observability:4317"
+        resources:
+          requests:
+            memory: 128Mi
+            cpu: 100m
+          limits:
+            memory: 256Mi
+            cpu: 300m
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-monitor
+  namespace: default
+spec:
+  selector:
+    app: api-monitor
+  ports:
+    - port: 8083
+      targetPort: 8083

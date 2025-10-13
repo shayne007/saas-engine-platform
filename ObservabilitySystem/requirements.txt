@@ -1,0 +1,26 @@
+# OpenTelemetry Python Dependencies
+opentelemetry-api==1.21.0
+opentelemetry-sdk==1.21.0
+opentelemetry-exporter-otlp==1.21.0
+opentelemetry-instrumentation==0.42b0
+opentelemetry-instrumentation-flask==0.42b0
+opentelemetry-instrumentation-requests==0.42b0
+
+# Web Framework
+Flask==3.0.0
+Werkzeug==3.0.1
+
+# HTTP Client
+requests==2.31.0
+
+# Utilities
+python-dotenv==1.0.0
+pydantic==2.5.0
+
+# Testing
+pytest==7.4.3
+pytest-flask==1.3.0
+
+# Development
+black==23.11.0
+flake8==6.1.0

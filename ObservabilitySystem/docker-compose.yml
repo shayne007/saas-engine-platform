@@ -1,0 +1,187 @@
+version: '3.8'
+
+services:
+  # OpenTelemetry Collector
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.91.0
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP HTTP receiver
+      - "8889:8889"   # Prometheus metrics
+    depends_on:
+      - prometheus
+      - tempo
+      - loki
+    networks:
+      - observability
+
+  # Prometheus for metrics storage
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=7d'
+      - '--web.enable-lifecycle'
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - observability
+
+  # Tempo for trace storage
+  tempo:
+    image: grafana/tempo:2.3.1
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - ./tempo.yaml:/etc/tempo.yaml
+      - tempo_data:/tmp/tempo
+    ports:
+      - "3200:3200"   # Tempo
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+    networks:
+      - observability
+
+  # Loki for log storage
+  loki:
+    image: grafana/loki:2.9.2
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./loki.yml:/etc/loki/local-config.yaml
+      - loki_data:/loki
+    ports:
+      - "3100:3100"
+    networks:
+      - observability
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:10.2.2
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-clock-panel
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - prometheus
+      - tempo
+      - loki
+    networks:
+      - observability
+
+  # PostgreSQL for data persistence
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: observability
+      POSTGRES_USER: observability
+      POSTGRES_PASSWORD: observability123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - observability
+
+  # Redis for caching
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - observability
+
+  # Data Collector Service
+  data-collector:
+    build:
+      context: ./DataCollectorService
+      dockerfile: Dockerfile
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/observability
+      - SPRING_DATASOURCE_USERNAME=observability
+      - SPRING_DATASOURCE_PASSWORD=observability123
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PORT=6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - otel-collector
+      - postgres
+      - redis
+    networks:
+      - observability
+
+  # Storage Aggregation Service
+  storage-aggregation:
+    build:
+      context: ./StorageAggregationService
+      dockerfile: Dockerfile
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/observability
+      - SPRING_DATASOURCE_USERNAME=observability
+      - SPRING_DATASOURCE_PASSWORD=observability123
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PORT=6379
+    ports:
+      - "8082:8082"
+    depends_on:
+      - otel-collector
+      - postgres
+      - redis
+    networks:
+      - observability
+
+  # Page View Tracker (Python)
+  page-view-tracker:
+    build:
+      context: ./DemoApplications/PythonDemos
+      dockerfile: Dockerfile.page-view-tracker
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+    ports:
+      - "8083:8082"
+    depends_on:
+      - otel-collector
+    networks:
+      - observability
+
+  # API Monitor (Python)
+  api-monitor:
+    build:
+      context: ./DemoApplications/PythonDemos
+      dockerfile: Dockerfile.api-monitor
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+    ports:
+      - "8084:8083"
+    depends_on:
+      - otel-collector
+    networks:
+      - observability
+
+volumes:
+  prometheus_data:
+  tempo_data:
+  loki_data:
+  grafana_data:
+  postgres_data:
+  redis_data:
+
+networks:
+  observability:
+    driver: bridge
