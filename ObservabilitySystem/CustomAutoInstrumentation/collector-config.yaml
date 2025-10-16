@@ -1,0 +1,44 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+
+processors:
+  batch:
+    timeout: 1s
+    send_batch_size: 1024
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 1000
+    spike_limit_mib: 200
+  resource:
+    attributes:
+      - key: deployment.environment
+        value: local-testing
+        action: upsert
+
+exporters:
+  logging:
+    verbosity: detailed
+  otlp:
+    endpoint: jaeger:14250
+    tls:
+      insecure: true
+  prometheus:
+    endpoint: 0.0.0.0:8889
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, resource]
+      exporters: [otlp, logging]
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, resource]
+      exporters: [prometheus, logging]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, resource]
+      exporters: [logging]

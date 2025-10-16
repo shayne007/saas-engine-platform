@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  # OpenTelemetry Collector
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+      - "8888:8888"   # Metrics
+      - "8889:8889"   # Prometheus exporter
+    networks:
+      - otel-net
+
+  # Jaeger for visualization
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"  # UI
+      - "14250:14250"  # Model
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    networks:
+      - otel-net
+
+  # Test application with auto-instrumentation
+  test-app:
+    build:
+      context: ./tests
+      dockerfile: Dockerfile
+    environment:
+      - PORT=8080
+      - OTEL_SERVICE_NAME=test-app
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_TRACES_EXPORTER=otlp
+      - OTEL_METRICS_EXPORTER=otlp
+      - OTEL_LOGS_EXPORTER=otlp
+      - OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED=true
+      - OTEL_PYTHON_LOG_CORRELATION=true
+      - PYTHONPATH=/app:/auto-instrumentation
+    volumes:
+      - ./:/auto-instrumentation
+    ports:
+      - "8080:8080"
+    depends_on:
+      - otel-collector
+    networks:
+      - otel-net
+    # Install OpenTelemetry dependencies and run the application with auto-instrumentation
+    command: >
+      bash -c "pip install -r /auto-instrumentation/requirements.txt &&
+               python /app/test_app.py"
+
+networks:
+  otel-net:
+    driver: bridge

@@ -1,0 +1,44 @@
+apiVersion: opentelemetry.io/v1alpha1
+kind: Instrumentation
+metadata:
+  name: custom-instrumentation
+  namespace: default
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: '{}'
+spec:
+  # Global exporter configuration
+  exporter:
+    endpoint: http://otel-collector.observability.svc.cluster.local:4317
+    
+  # Propagators for distributed tracing
+  propagators:
+    - tracecontext
+    - baggage
+    - b3
+    
+  # Sampling configuration
+  sampler:
+    type: parentbased_traceidratio
+    argument: "0.25"  # Sample 25% of traces
+  
+  # Resource attributes (applied to all telemetry)
+  resource:
+    addK8sUIDAttributes: true
+    resourceAttributes:
+      deployment.environment: production
+      service.namespace: saas-engine
+  
+  # Python-specific configuration using our custom image
+  python:
+    image: custom-otel-autoinstrumentation-python:1.0.0
+    env:
+      - name: OTEL_TRACES_EXPORTER
+        value: "otlp"
+      - name: OTEL_METRICS_EXPORTER
+        value: "otlp"
+      - name: OTEL_LOGS_EXPORTER
+        value: "otlp"
+      - name: OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED
+        value: "true"
+      - name: OTEL_PYTHON_LOG_CORRELATION
+        value: "true"
