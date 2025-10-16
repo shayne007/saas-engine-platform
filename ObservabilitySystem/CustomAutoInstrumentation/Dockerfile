@@ -1,5 +1,5 @@
 # Use specific version for reproducibility
-FROM python:3.11.6-slim
+FROM python:3.11-slim
 
 # Label for identification
 LABEL org.opencontainers.image.source="https://github.com/saas-engine-platform/custom-otel"
