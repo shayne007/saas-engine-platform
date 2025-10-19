@@ -1,0 +1,68 @@
+{{- if .Values.collector.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.collector.name | default "otel-collector" }}
+  namespace: {{ .Values.collector.namespace | default .Values.namespace | default "default" }}
+  labels:
+    app: {{ .Values.collector.name | default "otel-collector" }}
+spec:
+  replicas: {{ .Values.collector.replicas | default 1 }}
+  selector:
+    matchLabels:
+      app: {{ .Values.collector.name | default "otel-collector" }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.collector.name | default "otel-collector" }}
+    spec:
+      containers:
+      - name: collector
+        image: {{ .Values.collector.image | default "otel/opentelemetry-collector-contrib:latest" }}
+        args: ["--config=/etc/otel-collector-config.yaml"]
+        ports:
+        - name: otlp-grpc
+          containerPort: 4317
+        - name: otlp-http
+          containerPort: 4318
+        - name: metrics
+          containerPort: 8888
+        - name: prom-exporter
+          containerPort: 8889
+        volumeMounts:
+        - name: config
+          mountPath: /etc
+        resources:
+{{- if .Values.collector.resources }}
+{{ toYaml .Values.collector.resources | nindent 10 }}
+{{- end }}
+      volumes:
+      - name: config
+        configMap:
+          name: {{ default "otel-collector" .Values.collector.name }}-config
+          items:
+          - key: otel-collector-config.yaml
+            path: otel-collector-config.yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.collector.name | default "otel-collector" }}
+  namespace: {{ .Values.collector.namespace | default .Values.namespace | default "default" }}
+spec:
+  selector:
+    app: {{ .Values.collector.name | default "otel-collector" }}
+  ports:
+  - name: otlp-grpc
+    port: 4317
+    targetPort: 4317
+  - name: otlp-http
+    port: 4318
+    targetPort: 4318
+  - name: prom-exporter
+    port: 8889
+    targetPort: 8889
+  - name: metrics
+    port: 8888
+    targetPort: 8888
+{{- end }}

@@ -1,0 +1,30 @@
+{{- if .Values.instrumentation.enabled }}
+apiVersion: opentelemetry.io/v1alpha1
+kind: Instrumentation
+metadata:
+  name: {{ .Values.instrumentation.name | default "custom-instrumentation" }}
+  namespace: {{ .Values.instrumentation.namespace | default .Values.namespace | default "default" }}
+spec:
+  exporter:
+    endpoint: {{ .Values.instrumentation.exporter.endpoint | quote }}
+  propagators:
+{{- range .Values.instrumentation.propagators }}
+    - {{ . | quote }}
+{{- end }}
+  sampler:
+    type: {{ .Values.instrumentation.sampler.type | default "parentbased_traceidratio" }}
+    argument: {{ .Values.instrumentation.sampler.argument | quote }}
+  resource:
+    addK8sUIDAttributes: {{ .Values.instrumentation.resource.addK8sUIDAttributes | default true }}
+    resourceAttributes:
+{{- range $k, $v := .Values.instrumentation.resource.resourceAttributes }}
+      {{ $k }}: {{ $v | quote }}
+{{- end }}
+  python:
+    image: {{ .Values.instrumentation.python.image | default "custom-otel-autoinstrumentation-python:1.0.0" | quote }}
+    env:
+{{- range $k, $v := .Values.instrumentation.python.env }}
+      - name: {{ $k }}
+        value: {{ $v | quote }}
+{{- end }}
+{{- end }}

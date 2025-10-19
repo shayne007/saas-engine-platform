@@ -1,0 +1,49 @@
+{{- if .Values.testApp.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.testApp.name | default "test-app" }}
+  namespace: {{ .Values.namespace | default "default" }}
+  labels:
+    app: {{ .Values.testApp.name | default "test-app" }}
+spec:
+  replicas: {{ .Values.testApp.replicas | default 1 }}
+  selector:
+    matchLabels:
+      app: {{ .Values.testApp.name | default "test-app" }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.testApp.name | default "test-app" }}
+      annotations:
+        instrumentation.opentelemetry.io/inject-python: "true"
+    spec:
+      containers:
+      - name: {{ .Values.testApp.name | default "test-app" }}
+        image: {{ .Values.testApp.image | default "test-app:latest" }}
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: {{ .Values.testApp.port | default 8080 }}
+        env:
+        - name: PORT
+          value: "{{ .Values.testApp.port | default 8080 }}"
+        - name: OTEL_SERVICE_NAME
+          value: "{{ .Values.testApp.serviceName | default "test-app" }}"
+        resources:
+{{- if .Values.testApp.resources }}
+{{ toYaml .Values.testApp.resources | nindent 10 }}
+{{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.testApp.name | default "test-app" }}
+  namespace: {{ .Values.namespace | default "default" }}
+spec:
+  selector:
+    app: {{ .Values.testApp.name | default "test-app" }}
+  ports:
+  - port: {{ .Values.testApp.port | default 8080 }}
+    targetPort: {{ .Values.testApp.port | default 8080 }}
+  type: ClusterIP
+{{- end }}

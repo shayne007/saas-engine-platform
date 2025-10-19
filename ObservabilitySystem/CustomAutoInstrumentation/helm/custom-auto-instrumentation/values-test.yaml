@@ -1,0 +1,31 @@
+# Test environment overrides
+environment: test
+namespace: default
+
+instrumentation:
+  exporter:
+    endpoint: "http://otel-collector.observability.svc.cluster.local:4317"
+  sampler:
+    argument: "0.5"
+  resource:
+    resourceAttributes:
+      deployment.environment: test
+      service.namespace: saas-engine
+  python:
+    image: custom-otel-autoinstrumentation-python:1.0.0
+
+collector:
+  enabled: true
+  namespace: observability
+  exporters:
+    otlp:
+      endpoint: jaeger:14250
+      tls:
+        insecure: true
+    prometheus:
+      enabled: true
+      endpoint: 0.0.0.0:8889
+
+testApp:
+  enabled: true
+  image: test-app:latest

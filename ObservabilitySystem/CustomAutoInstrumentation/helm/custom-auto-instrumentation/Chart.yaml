@@ -1,0 +1,19 @@
+apiVersion: v2
+name: custom-auto-instrumentation
+description: Helm chart for Custom OpenTelemetry Python Auto-Instrumentation
+
+# application chart
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+keywords:
+  - opentelemetry
+  - instrumentation
+  - observability
+home: https://github.com/saas-engine-platform
+sources:
+  - https://github.com/saas-engine-platform
+maintainers:
+  - name: saas-engine-platform
+    email: ops@example.com

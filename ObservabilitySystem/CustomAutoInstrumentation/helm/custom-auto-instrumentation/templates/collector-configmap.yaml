@@ -1,0 +1,61 @@
+{{- if .Values.collector.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ default "otel-collector" .Values.collector.name }}-config
+  namespace: {{ .Values.collector.namespace | default .Values.namespace | default "default" }}
+data:
+  otel-collector-config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+          http:
+
+    processors:
+      batch:
+        timeout: {{ .Values.collector.processors.batch.timeout | default "1s" }}
+        send_batch_size: {{ .Values.collector.processors.batch.sendBatchSize | default 1024 }}
+      memory_limiter:
+        check_interval: {{ .Values.collector.processors.memoryLimiter.checkInterval | default "1s" }}
+        limit_mib: {{ .Values.collector.processors.memoryLimiter.limitMiB | default 1000 }}
+        spike_limit_mib: {{ .Values.collector.processors.memoryLimiter.spikeLimitMiB | default 200 }}
+      resource:
+        attributes:
+          - key: deployment.environment
+            value: {{ .Values.environment | default "development" }}
+            action: upsert
+
+    exporters:
+{{- if .Values.collector.exporters.logging.enabled }}
+      logging:
+        verbosity: {{ .Values.collector.exporters.logging.verbosity | default "detailed" }}
+{{- end }}
+{{- if .Values.collector.exporters.otlp.enabled }}
+      otlp:
+        endpoint: {{ .Values.collector.exporters.otlp.endpoint | quote }}
+{{- if .Values.collector.exporters.otlp.tls.insecure }}
+        tls:
+          insecure: true
+{{- end }}
+{{- end }}
+{{- if .Values.collector.exporters.prometheus.enabled }}
+      prometheus:
+        endpoint: {{ .Values.collector.exporters.prometheus.endpoint | default "0.0.0.0:8889" }}
+{{- end }}
+
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [memory_limiter, batch, resource]
+          exporters: [{{- if .Values.collector.exporters.otlp.enabled }}otlp,{{- end }}{{- if .Values.collector.exporters.logging.enabled }} logging{{- end }}]
+        metrics:
+          receivers: [otlp]
+          processors: [memory_limiter, batch, resource]
+          exporters: [{{- if .Values.collector.exporters.prometheus.enabled }}prometheus,{{- end }}{{- if .Values.collector.exporters.logging.enabled }} logging{{- end }}]
+        logs:
+          receivers: [otlp]
+          processors: [memory_limiter, batch, resource]
+          exporters: [{{- if .Values.collector.exporters.logging.enabled }}logging{{- end }}]
+{{- end }}

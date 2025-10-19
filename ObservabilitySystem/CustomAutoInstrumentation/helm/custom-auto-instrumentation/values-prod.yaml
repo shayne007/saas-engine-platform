@@ -1,0 +1,24 @@
+# Production environment overrides
+environment: production
+namespace: default
+
+instrumentation:
+  exporter:
+    endpoint: "http://otel-collector.observability.svc.cluster.local:4317"
+  sampler:
+    argument: "0.25"
+  resource:
+    resourceAttributes:
+      deployment.environment: production
+      service.namespace: saas-engine
+  python:
+    image: custom-otel-autoinstrumentation-python:1.0.0
+
+collector:
+  enabled: false  # typically use shared, separately managed collector in prod
+
+operator:
+  enabled: false  # recommend installing operator via official chart in prod
+
+testApp:
+  enabled: false

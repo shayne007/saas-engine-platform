@@ -1,0 +1,62 @@
+{{- if .Values.operator.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opentelemetry-operator-controller-manager
+  namespace: {{ .Values.operator.namespace | default "opentelemetry-operator-system" }}
+  labels:
+    app.kubernetes.io/name: opentelemetry-operator
+    control-plane: controller-manager
+spec:
+  replicas: {{ .Values.operator.replicas | default 1 }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: opentelemetry-operator
+      control-plane: controller-manager
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: opentelemetry-operator
+        control-plane: controller-manager
+    spec:
+      serviceAccountName: opentelemetry-operator-controller-manager
+      containers:
+      - name: manager
+        image: {{ .Values.operator.image | default "ghcr.io/open-telemetry/opentelemetry-operator/opentelemetry-operator:0.136.0" }}
+        imagePullPolicy: IfNotPresent
+        args:
+          - --metrics-addr=127.0.0.1:8080
+          - --enable-leader-election
+          - --zap-log-level={{ .Values.operator.zapLogLevel | default "info" }}
+          - --zap-time-encoding=rfc3339nano
+          - --enable-nginx-instrumentation={{ ternary "true" "false" (.Values.operator.enableNginx | default true) }}
+        ports:
+        - name: webhook-server
+          containerPort: 9443
+        resources:
+{{- if .Values.operator.resources }}
+{{ toYaml .Values.operator.resources | nindent 10 }}
+{{- else }}
+          requests:
+            cpu: 50m
+            memory: 32Mi
+{{- end }}
+        volumeMounts:
+        - mountPath: /tmp/k8s-webhook-server/serving-certs
+          name: cert
+          readOnly: true
+      - name: kube-rbac-proxy
+        image: {{ .Values.operator.kubeRbacProxyImage | default "quay.io/brancz/kube-rbac-proxy:v0.13.1" }}
+        args:
+          - --secure-listen-address=0.0.0.0:8443
+          - --upstream=http://127.0.0.1:8080/
+          - --logtostderr=true
+          - --v=0
+        ports:
+        - name: https
+          containerPort: 8443
+      volumes:
+      - name: cert
+        secret:
+          secretName: opentelemetry-operator-controller-manager-service-cert
+{{- end }}
