@@ -6,8 +6,14 @@ instrumentation:
   enabled: true
   name: custom-instrumentation
   namespace: default
-  exporter:
-    endpoint: "http://otel-collector.observability.svc.cluster.local:4317"
+  exporters:
+    - endpoint: "http://otel-collector.observability.svc.cluster.local:4317"
+      protocol: "grpc"
+    - endpoint: "http://otel-collector.observability.svc.cluster.local:4318/v1/traces"
+      protocol: "http"
+    # Add additional exporters as needed, for example:
+    # - endpoint: "http://second-collector.observability.svc.cluster.local:4317"
+    #   protocol: "grpc"
   propagators:
     - tracecontext
     - baggage

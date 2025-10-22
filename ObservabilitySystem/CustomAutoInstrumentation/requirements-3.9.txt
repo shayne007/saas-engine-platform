@@ -1,0 +1,26 @@
+# Core OpenTelemetry packages for Python 3.9
+opentelemetry-api==1.19.0
+opentelemetry-sdk==1.19.0
+opentelemetry-instrumentation==0.40b0
+opentelemetry-distro==0.40b0
+
+# Exporters
+opentelemetry-exporter-otlp-proto-grpc==1.19.0
+opentelemetry-exporter-otlp-proto-http==1.19.0
+opentelemetry-exporter-prometheus==0.40b0
+
+# Instrumentation libraries
+opentelemetry-instrumentation-flask==0.40b0
+opentelemetry-instrumentation-django==0.40b0
+opentelemetry-instrumentation-fastapi==0.40b0
+opentelemetry-instrumentation-requests==0.40b0
+opentelemetry-instrumentation-sqlalchemy==0.40b0
+opentelemetry-instrumentation-psycopg2==0.40b0
+opentelemetry-instrumentation-redis==0.40b0
+opentelemetry-instrumentation-celery==0.40b0
+opentelemetry-instrumentation-kafka-python==0.40b0
+
+# Additional utilities
+opentelemetry-semantic-conventions==0.40b0
+opentelemetry-propagator-b3==1.19.0
+opentelemetry-propagator-jaeger==1.19.0

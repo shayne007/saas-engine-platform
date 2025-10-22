@@ -5,8 +5,11 @@ metadata:
   name: {{ .Values.instrumentation.name | default "custom-instrumentation" }}
   namespace: {{ .Values.instrumentation.namespace | default .Values.namespace | default "default" }}
 spec:
-  exporter:
-    endpoint: {{ .Values.instrumentation.exporter.endpoint | quote }}
+  exporters:
+{{- range .Values.instrumentation.exporters }}
+    - endpoint: {{ .endpoint | quote }}
+      protocol: {{ .protocol | quote }}
+{{- end }}
   propagators:
 {{- range .Values.instrumentation.propagators }}
     - {{ . | quote }}

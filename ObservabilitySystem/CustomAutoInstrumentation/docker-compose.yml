@@ -41,6 +41,7 @@ services:
       - OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED=true
       - OTEL_PYTHON_LOG_CORRELATION=true
       - PYTHONPATH=/app:/auto-instrumentation
+#      - PYTHONPATH="/otel-auto-instrumentation/opentelemetry/instrumentation/auto_instrumentation:/otel-auto-instrumentation"
     volumes:
       - ./:/auto-instrumentation
     ports:

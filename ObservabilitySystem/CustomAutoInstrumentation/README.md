@@ -27,10 +27,60 @@ CustomAutoInstrumentation/
 
 ### Building the Custom Image
 
+#### Single Python Version
+
 ```bash
 cd CustomAutoInstrumentation
 docker build -t custom-otel-autoinstrumentation-python:1.0.0 .
 ```
+
+#### Multiple Python Versions
+
+The auto-instrumentation now supports multiple Python versions with version-specific dependencies. Use the provided build script:
+
+```bash
+cd CustomAutoInstrumentation
+chmod +x build-multi-version.sh
+./build-multi-version.sh
+```
+
+This will build images for Python 3.8, 3.9, 3.10, 3.11, and 3.12 by default, each with appropriate dependency versions. You can specify custom versions:
+
+```bash
+./build-multi-version.sh --versions 3.8,3.9,3.10
+```
+
+#### Offline Building and Connection Issues
+
+If you encounter Docker connection issues or need to build in an offline environment:
+
+```bash
+# Build using locally available images only (no network access)
+./build-multi-version.sh --offline
+
+# Specify an alternative Docker registry
+./build-multi-version.sh --registry mirror.example.com
+
+# Configure retry behavior for network operations
+./build-multi-version.sh --retries 5 --retry-delay 10
+```
+
+For all available options:
+
+```bash
+./build-multi-version.sh --help
+```
+
+##### Version-Specific Requirements
+
+Each Python version uses its own requirements file:
+- Python 3.8: `requirements-3.8.txt`
+- Python 3.9: `requirements-3.9.txt`
+- Python 3.10: `requirements-3.10.txt`
+- Python 3.11: `requirements-3.11.txt`
+- Python 3.12: `requirements-3.12.txt`
+
+To add or modify dependencies for a specific Python version, edit the corresponding requirements file.
 
 ### Deploying in Kubernetes
 
@@ -46,7 +96,17 @@ kubectl apply -f https://github.com/open-telemetry/opentelemetry-operator/releas
 kubectl apply -f custom-instrumentation.yaml
 ```
 
-3. Annotate your application pods:
+3. Annotate your application pods with Python version:
+
+```bash
+# For Python 3.8
+kubectl annotate pod/your-app-pod instrumentation.opentelemetry.io/python-version=3.8
+
+# For Python 3.9
+kubectl annotate pod/your-app-pod instrumentation.opentelemetry.io/python-version=3.9
+```
+
+You can also add this annotation in your deployment YAML:
 
 ```yaml
 metadata:

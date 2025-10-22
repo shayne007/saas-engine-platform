@@ -28,7 +28,8 @@ spec:
   
   # Python-specific configuration using our custom image
   python:
-    image: custom-otel-autoinstrumentation-python:1.0.0
+    # The image tag will be selected based on the Python version in the pod annotation
+    image: ${OTEL_PYTHON_IMAGE:custom-otel-autoinstrumentation-python:1.0.0}
     env:
       - name: OTEL_TRACES_EXPORTER
         value: "otlp"
@@ -40,3 +41,8 @@ spec:
         value: "true"
       - name: OTEL_PYTHON_LOG_CORRELATION
         value: "true"
+      # Add Python version detection
+      - name: PYTHON_VERSION
+        valueFrom:
+          fieldRef:
+            fieldPath: metadata.annotations['instrumentation.opentelemetry.io/python-version']
