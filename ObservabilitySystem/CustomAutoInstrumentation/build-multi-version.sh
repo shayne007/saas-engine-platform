@@ -108,6 +108,18 @@ for version in "${PYTHON_VERSIONS[@]}"; do
     "--build-arg" "PYTHON_VERSION=$version"
   )
   
+  # Prepare environment prefix for docker commands (timeout and proxy)
+  env_prefix=""
+  if [ -n "$HTTP_PROXY" ]; then
+    env_prefix="HTTP_PROXY=$HTTP_PROXY $env_prefix"
+  fi
+  if [ -n "$HTTPS_PROXY" ]; then
+    env_prefix="HTTPS_PROXY=$HTTPS_PROXY $env_prefix"
+  fi
+  if [ -n "$DOCKER_TIMEOUT" ]; then
+    env_prefix="DOCKER_CLIENT_TIMEOUT=$DOCKER_TIMEOUT $env_prefix"
+  fi
+  
   # Add registry override if not in offline mode
   if [ "$OFFLINE_MODE" = false ]; then
     build_args+=("--build-arg" "BASE_IMAGE_REGISTRY=$DOCKER_REGISTRY")
@@ -118,7 +130,7 @@ for version in "${PYTHON_VERSIONS[@]}"; do
   fi
   
   # Build the image with the specific Python version
-  build_cmd="docker build ${build_args[*]} -t \"$IMAGE_NAME:$IMAGE_TAG_PREFIX$version\" ."
+  build_cmd="$env_prefix docker build ${build_args[*]} -t \"$IMAGE_NAME:$IMAGE_TAG_PREFIX$version\" ."
   
   if ! docker_cmd_with_retry "$build_cmd"; then
     echo "Warning: Failed to build image for Python $version"
@@ -132,7 +144,7 @@ done
 
 # Create a manifest for the latest tag if we have successfully built images
 echo "Creating manifest for latest tag..."
-manifest_cmd="docker manifest create \"$IMAGE_NAME:latest\" $(printf "$IMAGE_NAME:$IMAGE_TAG_PREFIX%s " "${PYTHON_VERSIONS[@]}")"
+manifest_cmd="$env_prefix docker manifest create \"$IMAGE_NAME:latest\" $(printf "$IMAGE_NAME:$IMAGE_TAG_PREFIX%s " "${PYTHON_VERSIONS[@]}")"
 docker_cmd_with_retry "$manifest_cmd" || echo "Warning: Failed to create manifest for latest tag"
 
 echo "All images built successfully!"

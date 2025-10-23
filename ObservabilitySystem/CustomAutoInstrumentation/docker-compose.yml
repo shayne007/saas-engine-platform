@@ -28,9 +28,7 @@ services:
 
   # Test application with auto-instrumentation
   test-app:
-    build:
-      context: ./tests
-      dockerfile: Dockerfile
+    image: test-app:latest
     environment:
       - PORT=8080
       - OTEL_SERVICE_NAME=test-app
@@ -50,10 +48,8 @@ services:
       - otel-collector
     networks:
       - otel-net
-    # Install OpenTelemetry dependencies and run the application with auto-instrumentation
-    command: >
-      bash -c "pip install -r /auto-instrumentation/requirements.txt &&
-               python /app/test_app.py"
+    # Run the application with auto-instrumentation
+    command: python /app/test_app.py
 
 networks:
   otel-net:

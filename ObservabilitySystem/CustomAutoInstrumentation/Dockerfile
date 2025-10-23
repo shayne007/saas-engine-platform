@@ -1,7 +1,6 @@
 # Multi-version Python auto-instrumentation
 ARG PYTHON_VERSION=3.11
-ARG BASE_IMAGE_REGISTRY=docker.io/library
-FROM ${BASE_IMAGE_REGISTRY}/python:${PYTHON_VERSION}-slim
+FROM python:${PYTHON_VERSION}-slim
 
 # Label for identification
 LABEL org.opencontainers.image.source="https://github.com/saas-engine-platform/custom-otel"
@@ -39,9 +38,16 @@ RUN PYTHON_VERSION_PATH=$(python -c "import sys; print(f'{sys.version_info.major
 RUN . /env_vars.sh && \
     mkdir -p /usr/local/lib/python${PYTHON_VERSION_PATH}/site-packages/custom_extensions/
 
-# Copy custom extensions
-COPY extensions/ /usr/local/lib/python$(python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")/site-packages/custom_extensions/
-COPY custom_configurator.py /usr/local/lib/python$(python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")/site-packages/opentelemetry/instrumentation/auto_instrumentation/
+# Copy custom extensions to temporary location
+COPY extensions/ /tmp/custom_extensions/
+COPY custom_configurator.py /tmp/custom_configurator.py
+
+# Move files into Python site-packages based on computed version
+RUN PYTHON_VERSION_PATH=$(python -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")') && \
+    mkdir -p /usr/local/lib/python${PYTHON_VERSION_PATH}/site-packages/custom_extensions/ && \
+    cp -r /tmp/custom_extensions/* /usr/local/lib/python${PYTHON_VERSION_PATH}/site-packages/custom_extensions/ && \
+    mkdir -p /usr/local/lib/python${PYTHON_VERSION_PATH}/site-packages/opentelemetry/instrumentation/auto_instrumentation/ && \
+    cp /tmp/custom_configurator.py /usr/local/lib/python${PYTHON_VERSION_PATH}/site-packages/opentelemetry/instrumentation/auto_instrumentation/
 
 # Create instrumentation directory
 RUN mkdir -p /otel-auto-instrumentation-python
