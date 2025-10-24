@@ -1,0 +1,30 @@
+{
+	"name": "/manual-span",
+	"start_time": 1761239432824136794,
+	"end_time": 1761239432933217711,
+	"status": "StatusCode.UNSET",
+	"attributes": {
+		"custom.processed": true,
+		"custom.processor.version": "1.0.0",
+		"custom.service": "test-app",
+		"http.method": "GET",
+		"http.server_name": "0.0.0.0",
+		"http.scheme": "http",
+		"net.host.port": 8080,
+		"http.host": "localhost:8080",
+		"http.target": "/manual-span",
+		"net.peer.ip": "192.168.65.1",
+		"http.user_agent": "curl/8.7.1",
+		"net.peer.port": 63633,
+		"http.flavor": "1.1",
+		"http.route": "/manual-span",
+		"http.status_code": 200
+	},
+	"resource": {
+		"telemetry.sdk.language": "python",
+		"telemetry.sdk.name": "opentelemetry",
+		"telemetry.sdk.version": "1.21.0",
+		"service.name": "test-app",
+		"deployment.environment": "local-testing"
+	}
+}
