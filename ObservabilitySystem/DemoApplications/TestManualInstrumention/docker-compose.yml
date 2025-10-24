@@ -28,7 +28,7 @@ services:
 
   # Test application with auto-instrumentation
   test-app:
-    image: test-app:latest
+    image: test-app:1.0.0-man-inst
     environment:
       - PORT=8080
       - OTEL_SERVICE_NAME=test-app

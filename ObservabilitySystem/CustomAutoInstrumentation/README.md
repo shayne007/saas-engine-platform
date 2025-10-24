@@ -194,23 +194,6 @@ The `custom_span_processor.py` provides enhanced telemetry data processing capab
 - Optimized span data handling for better performance
 - Enhanced error handling and logging
 
-## 🧪 Testing
-
-The project includes a test application for validating the instrumentation:
-
-```bash
-# Start the test environment
-docker-compose up -d
-
-# Test manual span creation
-curl http://localhost:8080/manual-span
-
-# Test slow operation span
-curl http://localhost:8080/slow
-
-# Check logs for span processing
-docker logs customautoinstrumentation-test-app-1 | grep -E 'custom_span_processor'
-```
 
 ## 📊 Viewing Traces in Jaeger
 
