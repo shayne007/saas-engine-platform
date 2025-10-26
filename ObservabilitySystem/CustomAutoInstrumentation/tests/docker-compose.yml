@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  # Test application with no-instrumentation
+  test-app:
+    image: test-app:latest
+    environment:
+      - PORT=8080
+      - PYTHONPATH=/app
+    ports:
+      - "8080:8080"
+    networks:
+      - otel-net
+    # Run the application with no-instrumentation
+    command: python /app/test_app.py
+
+networks:
+  otel-net:
+    driver: bridge

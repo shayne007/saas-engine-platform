@@ -11,66 +11,8 @@ import sys
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Import OpenTelemetry components
-try:
-    from opentelemetry import trace
-    from opentelemetry.sdk.trace import TracerProvider
-    from opentelemetry.sdk.trace.export import BatchSpanProcessor
-    from opentelemetry.sdk.resources import Resource
-    from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-    from opentelemetry.instrumentation.flask import FlaskInstrumentor
-    
-    # Import custom span processor if available
-    sys.path.append('/auto-instrumentation')
-    try:
-        from extensions.custom_span_processor import CustomSpanProcessor
-        logger.info("Successfully imported CustomSpanProcessor")
-    except ImportError:
-        logger.warning("Could not import CustomSpanProcessor, using standard processor")
-        CustomSpanProcessor = None
-except ImportError as e:
-    logger.error(f"Error importing OpenTelemetry: {e}")
-    logger.error("Running without telemetry")
-    trace = None
-
 # Create Flask app
 app = Flask(__name__)
-
-# Initialize OpenTelemetry if available
-if trace:
-    # Configure OpenTelemetry
-    resource = Resource.create({
-        "service.name": os.environ.get("OTEL_SERVICE_NAME", "test-app"),
-        "deployment.environment": "local-testing"
-    })
-    
-    # Set up tracer provider
-    tracer_provider = TracerProvider(resource=resource)
-    trace.set_tracer_provider(tracer_provider)
-    
-    # Set up OTLP exporter
-    otlp_exporter = OTLPSpanExporter(
-        endpoint=os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", "http://otel-collector:4317")
-    )
-    
-    # Add standard span processor
-    tracer_provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
-    
-    # Add custom span processor if available
-    if CustomSpanProcessor:
-        tracer_provider.add_span_processor(CustomSpanProcessor())
-        logger.info("Added CustomSpanProcessor to tracer provider")
-    
-    # Instrument Flask
-    FlaskInstrumentor().instrument_app(app)
-    
-    # Get tracer
-    tracer = trace.get_tracer(__name__)
-    
-    logger.info("OpenTelemetry initialized successfully")
-else:
-    logger.warning("OpenTelemetry not available, running without instrumentation")
-    tracer = None
 
 @app.route('/')
 def home():

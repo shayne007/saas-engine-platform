@@ -15,12 +15,12 @@ spec:
       labels:
         app: test-app
       annotations:
-        instrumentation.opentelemetry.io/inject-python: "true"
+        # instrumentation.opentelemetry.io/inject-python: "true"
     spec:
       containers:
       - name: test-app
         image: test-app:latest
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Never
         ports:
         - containerPort: 8080
         env:
@@ -30,11 +30,11 @@ spec:
           value: "test-app"
         resources:
           requests:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 20m
+            memory: 32Mi
           limits:
-            cpu: 200m
-            memory: 256Mi
+            cpu: 50m
+            memory: 64Mi
 ---
 apiVersion: v1
 kind: Service
