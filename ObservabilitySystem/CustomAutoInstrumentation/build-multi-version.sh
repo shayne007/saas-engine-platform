@@ -143,6 +143,7 @@ for version in "${PYTHON_VERSIONS[@]}"; do
 done
 
 # Create a manifest for the latest tag if we have successfully built images
+# docker manifest create "custom-otel-autoinstrumentation-python:latest" custom-otel-autoinstrumentation-python:1.0.0-python3.12
 echo "Creating manifest for latest tag..."
 manifest_cmd="$env_prefix docker manifest create \"$IMAGE_NAME:latest\" $(printf "$IMAGE_NAME:$IMAGE_TAG_PREFIX%s " "${PYTHON_VERSIONS[@]}")"
 docker_cmd_with_retry "$manifest_cmd" || echo "Warning: Failed to create manifest for latest tag"
