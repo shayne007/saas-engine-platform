@@ -20,7 +20,7 @@ spec:
       containers:
       - name: test-app
         image: test-app:latest
-        imagePullPolicy: Never
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080
         env:
@@ -47,4 +47,4 @@ spec:
   ports:
   - port: 8080
     targetPort: 8080
-  type: ClusterIP
+  type: NodePort
