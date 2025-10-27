@@ -104,27 +104,6 @@ services:
     networks:
       - observability
 
-  # Data Collector Service
-  data-collector:
-    build:
-      context: ./DataCollectorService
-      dockerfile: Dockerfile
-    environment:
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/observability
-      - SPRING_DATASOURCE_USERNAME=observability
-      - SPRING_DATASOURCE_PASSWORD=observability123
-      - SPRING_REDIS_HOST=redis
-      - SPRING_REDIS_PORT=6379
-    ports:
-      - "8081:8081"
-    depends_on:
-      - otel-collector
-      - postgres
-      - redis
-    networks:
-      - observability
-
   # Storage Aggregation Service
   # storage-aggregation:
   #   build:
@@ -164,7 +143,7 @@ services:
   api-monitor:
     build:
       context: ../../DemoApplications/PythonDemos
-      dockerfile: Dockerfile.api-monitor
+      dockerfile: ../../DemoApplications/PythonDemos/Dockerfile.api-monitor
     environment:
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
     ports:
