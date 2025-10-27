@@ -126,30 +126,30 @@ services:
       - observability
 
   # Storage Aggregation Service
-  storage-aggregation:
-    build:
-      context: ./StorageAggregationService
-      dockerfile: Dockerfile
-    environment:
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/observability
-      - SPRING_DATASOURCE_USERNAME=observability
-      - SPRING_DATASOURCE_PASSWORD=observability123
-      - SPRING_REDIS_HOST=redis
-      - SPRING_REDIS_PORT=6379
-    ports:
-      - "8082:8082"
-    depends_on:
-      - otel-collector
-      - postgres
-      - redis
-    networks:
-      - observability
+  # storage-aggregation:
+  #   build:
+  #     context: ./StorageAggregationService
+  #     dockerfile: Dockerfile
+  #   environment:
+  #     - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+  #     - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/observability
+  #     - SPRING_DATASOURCE_USERNAME=observability
+  #     - SPRING_DATASOURCE_PASSWORD=observability123
+  #     - SPRING_REDIS_HOST=redis
+  #     - SPRING_REDIS_PORT=6379
+  #   ports:
+  #     - "8082:8082"
+  #   depends_on:
+  #     - otel-collector
+  #     - postgres
+  #     - redis
+  #   networks:
+  #     - observability
 
   # Page View Tracker (Python)
   page-view-tracker:
     build:
-      context: ./DemoApplications/PythonDemos
+      context: ../../DemoApplications/PythonDemos
       dockerfile: Dockerfile.page-view-tracker
     environment:
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
@@ -163,7 +163,7 @@ services:
   # API Monitor (Python)
   api-monitor:
     build:
-      context: ./DemoApplications/PythonDemos
+      context: ../../DemoApplications/PythonDemos
       dockerfile: Dockerfile.api-monitor
     environment:
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317

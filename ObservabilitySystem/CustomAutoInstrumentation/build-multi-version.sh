@@ -5,7 +5,7 @@ set -e
 
 # Default versions to build
 # PYTHON_VERSIONS=("3.8" "3.9" "3.10" "3.11" "3.12")
-PYTHON_VERSIONS=("3.10" "3.12")
+PYTHON_VERSIONS=("3.12")
 IMAGE_NAME="custom-otel-autoinstrumentation-python"
 IMAGE_TAG_PREFIX="1.0.0-python"
 RETRY_COUNT=3
