@@ -23,19 +23,38 @@ processors:
 exporters:
   debug:
     verbosity: detailed
-  otlp/jaeger:
-    endpoint: jaeger:4317
-    tls:
-      insecure: true
+
   prometheus:
     endpoint: 0.0.0.0:8889
+  
+  otlp/tempo:
+    endpoint: tempo:4317
+    tls:
+      insecure: true
+      
+  loki:
+    endpoint: http://loki:3100/loki/api/v1/push
+    tls:
+      insecure: true
+    retry_on_failure:
+      enabled: true
+      initial_interval: 500ms
+      max_interval: 5s
+      max_elapsed_time: 30s
+    sending_queue:
+      enabled: true
+      queue_size: 1000
+      num_consumers: 2
 
 service:
+  telemetry:
+    logs:
+      level: debug
   pipelines:
     traces:
       receivers: [otlp]
       processors: [memory_limiter, batch, resource]
-      exporters: [otlp/jaeger, debug]
+      exporters: [otlp/tempo, debug]
     metrics:
       receivers: [otlp]
       processors: [memory_limiter, batch, resource]
@@ -43,4 +62,4 @@ service:
     logs:
       receivers: [otlp]
       processors: [memory_limiter, batch, resource]
-      exporters: [debug]
+      exporters: [loki, debug]

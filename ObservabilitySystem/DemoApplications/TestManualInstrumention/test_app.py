@@ -17,7 +17,8 @@ try:
     from opentelemetry.sdk.trace import TracerProvider
     from opentelemetry.sdk.trace.export import BatchSpanProcessor
     from opentelemetry.sdk.resources import Resource
-    from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+    # Use HTTP exporter instead of gRPC
+    from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
     from opentelemetry.instrumentation.flask import FlaskInstrumentor
     
     # Import custom span processor if available
@@ -48,9 +49,10 @@ if trace:
     tracer_provider = TracerProvider(resource=resource)
     trace.set_tracer_provider(tracer_provider)
     
-    # Set up OTLP exporter
+    # Set up OTLP exporter using HTTP
+    # 使用HTTP导出器，指向otel-collector的HTTP端口4318，并包含正确的路径
     otlp_exporter = OTLPSpanExporter(
-        endpoint=os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", "http://otel-collector:4317")
+        endpoint=os.environ.get("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "http://otel-collector:4318/v1/traces")
     )
     
     # Add standard span processor

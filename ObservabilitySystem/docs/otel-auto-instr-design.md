@@ -776,7 +776,7 @@ custom-autoinstrumentation/
 
 ```dockerfile
 # Use specific version for reproducibility
-FROM python:3.11.6-slim
+FROM python:3.12-slim
 
 # Label for identification
 LABEL org.opencontainers.image.source="https://github.com/yourorg/custom-otel"

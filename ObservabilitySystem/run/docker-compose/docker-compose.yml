@@ -8,8 +8,8 @@ services:
     volumes:
       - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
     ports:
-      - "4317:4317"   # OTLP gRPC receiver
-      - "4318:4318"   # OTLP HTTP receiver
+      - "4320:4317"   # OTLP gRPC receiver (changed to 4320 to avoid conflict with tempo)
+      - "4319:4318"   # OTLP HTTP receiver (changed to 4319 to avoid conflict)
       - "8889:8889"   # Prometheus metrics
     depends_on:
       - prometheus
@@ -39,9 +39,9 @@ services:
   # Tempo for trace storage
   tempo:
     image: grafana/tempo:2.3.1
-    command: [ "-config.file=/etc/tempo.yaml" ]
+    command: [ "-config.file=/etc/tempo/tempo.yaml" ]
     volumes:
-      - ./tempo.yaml:/etc/tempo.yaml
+      - ./tempo.yaml:/etc/tempo/tempo.yaml
       - tempo_data:/tmp/tempo
     ports:
       - "3200:3200"   # Tempo
@@ -55,7 +55,7 @@ services:
     image: grafana/loki:2.9.2
     command: -config.file=/etc/loki/local-config.yaml
     volumes:
-      - ./loki.yml:/etc/loki/local-config.yaml
+      - ./loki.yaml:/etc/loki/local-config.yaml
       - loki_data:/loki
     ports:
       - "3100:3100"
@@ -104,54 +104,39 @@ services:
     networks:
       - observability
 
-  # Storage Aggregation Service
-  # storage-aggregation:
-  #   build:
-  #     context: ./StorageAggregationService
-  #     dockerfile: Dockerfile
-  #   environment:
-  #     - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
-  #     - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/observability
-  #     - SPRING_DATASOURCE_USERNAME=observability
-  #     - SPRING_DATASOURCE_PASSWORD=observability123
-  #     - SPRING_REDIS_HOST=redis
-  #     - SPRING_REDIS_PORT=6379
-  #   ports:
-  #     - "8082:8082"
-  #   depends_on:
-  #     - otel-collector
-  #     - postgres
-  #     - redis
-  #   networks:
-  #     - observability
-
-  # Page View Tracker (Python)
-  page-view-tracker:
-    build:
-      context: ../../DemoApplications/PythonDemos
-      dockerfile: Dockerfile.page-view-tracker
+  test-app:
+    image: test-app:1.0.0-man-inst
     environment:
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - PORT=8080
+      - OTEL_SERVICE_NAME=test-app
+      # 明确使用HTTP导出器，而不是默认的gRPC导出器
+      - OTEL_TRACES_EXPORTER=otlphttp
+      - OTEL_METRICS_EXPORTER=otlphttp
+      - OTEL_LOGS_EXPORTER=otlphttp
+      # 设置HTTP导出器的端点
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+      - OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+      # 为每种导出类型明确设置端点和协议
+      - OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://otel-collector:4318/v1/traces
+      - OTEL_EXPORTER_OTLP_TRACES_PROTOCOL=http/protobuf
+      - OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=http://otel-collector:4318/v1/metrics
+      - OTEL_EXPORTER_OTLP_METRICS_PROTOCOL=http/protobuf
+      - OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=http://otel-collector:4318/v1/logs
+      - OTEL_EXPORTER_OTLP_LOGS_PROTOCOL=http/protobuf
+      - OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED=true
+      - OTEL_PYTHON_LOG_CORRELATION=true
+      - PYTHONPATH=/app:/auto-instrumentation
+#      - PYTHONPATH="/otel-auto-instrumentation/opentelemetry/instrumentation/auto_instrumentation:/otel-auto-instrumentation"
+    volumes:
+      - ./:/auto-instrumentation
     ports:
-      - "8083:8082"
+      - "8080:8080"
     depends_on:
       - otel-collector
     networks:
       - observability
-
-  # API Monitor (Python)
-  api-monitor:
-    build:
-      context: ../../DemoApplications/PythonDemos
-      dockerfile: ../../DemoApplications/PythonDemos/Dockerfile.api-monitor
-    environment:
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
-    ports:
-      - "8084:8083"
-    depends_on:
-      - otel-collector
-    networks:
-      - observability
+    # Run the application with auto-instrumentation
+    command: python /app/test_app.py
 
 volumes:
   prometheus_data:

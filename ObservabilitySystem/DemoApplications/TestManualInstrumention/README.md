@@ -2,8 +2,7 @@
 ## Build the test app docker image
 ```bash
 cd ObservabilitySystem/DemoApplications/TestManualInstrumention
-docker build -t test-app:latest -f ./Dockerfile .
-docker image tag  test-app:latest test-app:1.0.0-man-inst 
+docker build -t test-app:1.0.0-man-inst  -f ./Dockerfile .
 
 ```
 ## 🧪 Testing
